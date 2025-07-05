@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" type="text/css" href="{% static 'date/daterangepicker.css' %}" />
+{% endblock head %}
+{% block content %}
+
+<section id="page-banner" class="pt-55 pb-60 bg_cover" data-overlay="8">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-banner-cont">
+                    <h2>Проверка журнала</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'index' %}">Домашняя страница</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Проверка журнала</li>
+                        </ol>
+                    </nav>
+                </div>  <!-- page banner cont -->
+            </div>
+        </div> <!-- row -->
+    </div> <!-- container -->
+</section>
+<!--====== PAGE BANNER PART ENDS ======-->
+
+<section class="pt-30 pb-120 gray-bg">
+	<div class="container mt-5">
+		<div class="row">
+			<div class="col-lg-12">
+				<form id = "tabel-date-form" method="post" action="{% url 'check_journal' %}">
+					{% csrf_token %}
+					<div class="row">
+						<div class="col-md-12" style="background-color: white; padding-left: 30px; padding-right: 30px; padding-top: 30px;">
+							<div class="d-flex justify-content-between align-items-center">
+    							<input class="form-control" style="height: 52px" type="text" name="tabel-date" >
+								<button style="height:100%; border-radius: 0px" type="submit"  class="form-control main-btn quarter-button {% if selected_period == 'week' %}selected{% endif %}" name="tabel-date" value="week">За эту неделю</button>
+								<button style="height:100%; border-radius: 0px" type="submit"  class="form-control main-btn quarter-button {% if selected_period == 'month' %}selected{% endif %}" name="tabel-date" value="month">За этот месяц</button>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-12 mb-3" style="background-color: white; padding: 30px;">
+							<div class="d-flex justify-content-between">
+								<button style="height:100%; border-radius: 0px" type="submit"  class="form-control main-btn quarter-button {% if selected_period == '1' %}selected{% endif %}" name="tabel-quarter" value="1">1 четверть</button>
+								<button style="height:100%; border-radius: 0px" type="submit" class="form-control main-btn quarter-button {% if selected_period == '2' %}selected{% endif %}" name="tabel-quarter" value="2">2 четверть</button>
+								<button style="height:100%; border-radius: 0px" type="submit" class="form-control main-btn quarter-button {% if selected_period == '3' %}selected{% endif %}" name="tabel-quarter" value="3">3 четверть</button>
+								<button style="height:100%; border-radius: 0px" type="submit" class="form-control main-btn quarter-button {% if selected_period == '4' %}selected{% endif %}" name="tabel-quarter" value="4">4 четверть</button>
+							</div>
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="col-lg-12 mb-3" style="background-color: white; padding: 30px;">
+				<div id="tabel-short" class="table-container" style="overflow-x: auto;">
+					{% if teachers_percentage.items %}
+					<table class="table table-bordered">
+						<thead>
+							<tr>
+								<th class="text-center">Преподаватель</th>
+								<th class="text-center">Статус преподавателя</th>
+								<th class="text-center">Заполненность журнала за выбранный период</th>
+								<th class="text-center">Проверка незаполненных уроков</th>
+							</tr>
+						</thead>
+						<tbody>
+
+							{% for teacher, percentage in teachers_percentage.items %}
+								<tr>
+									<td class="text-center">{{teacher.first_name}} {{teacher.last_name}}</td>
+									<td style="width: 25%" class="text-center">{{teacher.get_teacher_status_display}}</td>
+									<td class="text-center">
+										{% if percentage < 0 %}
+											уроков не было 
+										{% else %}
+											{{percentage}}%
+										{% endif %}
+									</td>
+									<td class="text-center">
+										{% if percentage < 0 %}
+											 
+										{% else %}
+										<a href="{% url 'missed_lessons' teacher.id selected_period start_date end_date %}">Проверить<i class="fa fa-check-circle"></i></a>
+										{% endif %}
+										
+									</td>
+								</tr>
+							{% endfor %}
+							<tr>
+								<td style="color: red" class="text-center">Продление дедлайна по всем урокам</td>
+								<td class="text-center">-</td>
+								<td class="text-center">-</td>
+								<td class="text-center">
+									<a style="color:red" href="{% url 'deadline_full' selected_period start_date end_date %}">Продлить все!<i class="fa fa-check-circle"></i></a>
+								</td>
+
+							</tr>
+						</tbody>
+					</table>
+					{% else %}
+						<div class="col-lg-12 text-center">
+							<div class="alert alert-warning" role="alert">
+								<h4 class="alert-heading">Преподавателей в системе не обнаружено</h4>
+							</div>
+						</div>
+					{% endif %}
+				</div>
+			</div>
+
+			
+		</div>	
+	</div>
+</section>
+{% endblock content %}
+{% block last %}
+
+<script type="text/javascript" src="{% static 'date/moment.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'date/daterangepicker.min.js' %}"></script>
+<script>
+  $('input[name="tabel-date"]').daterangepicker({
+    "minYear": 2023,
+    "locale": {
+        "format": "YYYY-MM-DD",
+        "separator": " - ",
+        "applyLabel": "Выбрать",
+        "cancelLabel": "Отменить",
+        "fromLabel": "From",
+        "toLabel": "To",
+        "customRangeLabel": "Custom",
+        "weekLabel": "W",
+        "daysOfWeek": [
+            "Пн",
+            "Вт",
+            "Ср",
+            "Чт",
+            "Пт",
+            "Сб",
+            "Вс"
+        ],
+        "monthNames": [
+            "Январь",
+            "Февраль",
+            "Март",
+            "Апрель",
+            "Май",
+            "Июнь",
+            "Июль",
+            "Август",
+            "Сентябрь",
+            "Октябрь",
+            "Ноябрь",
+            "Декабрь"
+        ],
+        "firstDay": 1
+    },
+    "startDate": "{{start_date}}",
+    "endDate": "{{end_date}}"
+}, function(start, end, label) {
+  console.log('New date range selected: ' + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD') + ' (predefined range: ' + label + ')');
+});
+
+$('input[name="tabel-date"]').on('apply.daterangepicker', function(ev, picker) {
+  $('#tabel-date-form').submit();
+});
+</script>
+<script>
+	{% if user.groups.all.first.name == 'Администратор' %}
+	document.querySelectorAll('#navbarSupportedContent ul li')[5].querySelector('a').classList.add('active');
+	{% endif %}
+</script>
+{% endblock last %}

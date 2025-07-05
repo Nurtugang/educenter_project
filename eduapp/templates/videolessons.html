@@ -1,0 +1,369 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load my_filters %}
+{% block content %}
+<!--====== PAGE BANNER PART START ======-->
+  
+<section id="page-banner" class="pt-55 pb-60 bg_cover" data-overlay="8">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="page-banner-cont">
+          <h2>{{course.name}} {{course.grade}} класс {{course.semester}} четверть</h2>
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item"><a href="{% url 'index' %}">Домашняя страница</a></li>
+              <li class="breadcrumb-item"><a href="{% url 'elessons' %}">Видеокурсы</a></li>
+              <li class="breadcrumb-item active" aria-current="page">{{course.name}} {{course.grade}} класс {{course.semester}} четверть</li>
+            </ol>
+          </nav>
+        </div>  <!-- page banner cont -->
+      </div>
+    </div> <!-- row -->
+  </div> <!-- container -->
+</section>
+  
+<!--====== PAGE BANNER PART ENDS ======-->
+  
+<!--====== COURSES SINGEl PART START ======-->
+
+<section id="corses-singel" class="pt-90 pb-120 gray-bg">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8">
+        <div class="corses-singel-left mt-30">
+          <div class="title">
+            <h3>{{course.name}} {{course.grade}} класс {{course.semester}} четверть</h3>
+          </div> <!-- title -->
+          <div class="course-terms">
+            <ul>
+              <li>
+                <div class="teacher-name">
+                  <div class="name">
+                    <span>Учитель</span>
+                    <h6>{{course.teacher.first_name}} {{course.teacher.last_name}}</h6>
+                  </div>
+                </div>
+              </li>
+              <li>
+                <div class="course-category">
+                  <span>Предмет</span>
+                  <h6>{{ course.name }} </h6>
+                </div>
+              </li>
+              <li>
+                <div class="review">
+                  <span>Оценки</span>
+                  <ul>
+                    {% for i in feedbacks_int|times %}
+                      <li><a href="#"><i class="fa fa-star"></i></a></li>
+                    {% endfor %}
+
+                    
+                    <li class="rating">({{course_feedbacks|length}} оценок)</li>
+                  </ul>
+                </div>
+              </li>
+            </ul>
+          </div> <!-- course terms -->
+          
+          <div class="corses-singel-image pt-50">
+            <img src="{{ course.image.url }}" alt="Courses">
+          </div> <!-- corses singel image -->
+          
+          <div class="corses-tab mt-30">
+            <ul class="nav nav-justified" id="myTab" role="tablist">
+              <li class="nav-item">
+                <a class="active" id="overview-tab" data-toggle="tab" href="#overview" role="tab" aria-controls="overview" aria-selected="true">Обзор</a>
+              </li>
+              <li class="nav-item">
+                <a id="curriculam-tab" data-toggle="tab" href="#curriculam" role="tab" aria-controls="curriculam" aria-selected="false">Видеоуроки</a>
+              </li>
+              <li class="nav-item">
+                <a id="instructor-tab" data-toggle="tab" href="#instructor" role="tab" aria-controls="instructor" aria-selected="false">Инструктор</a>
+              </li>
+              <li class="nav-item">
+                <a id="reviews-tab" data-toggle="tab" href="#reviews" role="tab" aria-controls="reviews" aria-selected="false">Оценки</a>
+              </li>
+            </ul>
+            
+            <div class="tab-content" id="myTabContent">
+              <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+                <div class="overview-description">
+                  <div class="singel-description pt-40">
+                    <p>{{course.description|linebreaks}}</p>
+                  </div>
+                </div> <!-- overview description -->
+              </div>
+              <div class="tab-pane fade" id="curriculam" role="tabpanel" aria-labelledby="curriculam-tab">
+                <div class="curriculam-cont">
+                  <div class="title">
+                    <h6>Содержание</h6>
+                  </div>
+                  <div class="accordion" id="accordionExample">
+                    {% for l in lessons %}
+                    <div class="card">
+                      <div class="card-header" id="heading{{l.id}}">
+                        <a href="#" data-toggle="collapse" data-target="#collapse{{l.id}}" aria-expanded="true" aria-controls="collapse{{l.id}}">
+                          <ul>
+                            <li><i class="fa fa-file-o"></i></li>
+                            <li><span class="lecture">Видеоурок {{forloop.counter}}</span></li>
+                            <li><span class="head">{{l.name}}</span></li>
+                            <li><span class="time d-none d-md-block"><i class="fa fa-clock-o"></i> <span>{{l.dur_kaz}}</span></span></li>
+                          </ul>
+                        </a>
+                      </div>
+
+                      <div id="collapse{{l.id}}" class="collapse show" aria-labelledby="heading{{l.id}}" data-parent="#accordionExample">
+                        <div class="card-body">
+                          <div class="video-container">
+                            {% if is_available %}
+                            <button class="main-btn load-video-btn" data-video-id="{{ l.link_kaz|youtube_id  }}">КАЗ</button>
+                            {% endif %}
+                          </div>
+                          <!-- Modal for KAZ -->
+                          <div class="modal" id="youtube-modal" tabindex="-1">
+                            <div class="modal-dialog modal-lg">
+                              <div class="modal-content" id="youtube-modal-content">
+                                <!-- Modal content will be added dynamically using JavaScript -->
+                              </div>
+                            </div>
+                          </div>
+                          <!-- The Modal KAZ end</!-->
+                          <div class="video-container">
+                            {% if is_available %}
+                            <button class="main-btn load-video-btn" data-video-id="{{ l.link_rus|youtube_id  }}">РУС</button>
+                            {% endif %}
+                          </div>
+                          <!-- Modal for RUS -->
+                          <div class="modal" id="youtube-modal" tabindex="-1">
+                            <div class="modal-dialog modal-lg">
+                              <div class="modal-content" id="youtube-modal-content">
+                                <!-- Modal content will be added dynamically using JavaScript -->
+                              </div>
+                            </div>
+                          </div>
+                          <!-- The Modal RUS end</!-->
+                        </div>
+                      </div>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div> <!-- curriculam cont -->
+              </div>
+              <div class="tab-pane fade" id="instructor" role="tabpanel" aria-labelledby="instructor-tab">
+                <div class="instructor-cont">
+                  <div class="instructor-author">
+                    <div class="author-thum">
+                      <img src="{{teacher.image.url}}" alt="Instructor">
+                    </div>
+                    <div class="author-name">
+                      <h5>{{teacher.first_name}} {{teacher.last_name}}</h5>
+                      <span>Преподает по следующим предметам: {{course.name}}</span>
+                    </div>
+                  </div>
+                  <div class="instructor-description pt-25">
+                    <p>{{teacher.bio}}</p>
+                  </div>
+                </div> <!-- instructor cont -->
+              </div>
+              <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+                <div class="reviews-cont">
+                  <div class="title">
+                    <h6>Отзывы</h6>
+                  </div>
+                  <ul>
+                    {% for f in course_feedbacks %}
+                     <li>
+                       <div class="singel-reviews">
+                        <div class="reviews-author">
+                          <div class="author-thum">
+                            <img src="{{f.user.image.url}}" alt="Reviews">
+                          </div>
+                          <div class="author-name">
+                            <h6>{{f.user.first_name}} {{f.user.last_name}}</h6>
+                            <span>April 20, 2019</span>
+                          </div>
+                        </div>
+                        <div class="reviews-description pt-20">
+                          <p>{{f.comment}}</p>
+                          <div class="rating">
+                            <ul>
+                              {% for i in f.rating|times %}
+                                <li><i class="fa fa-star"></i></li>
+                              {% endfor %}
+                              
+                            </ul>
+                            <span>/ из 5</span>
+                          </div>
+                        </div>
+                      </div> <!-- singel reviews -->
+                     </li>
+                     {% empty %}
+                      <br>
+                      <p>Пока что нет ни одного отзыва</p>
+                     {% endfor %}
+                  </ul>
+                  <div class="title pt-15">
+                    <h6>Оставьте отзыв</h6>
+                  </div>
+                  <div class="reviews-form">
+                    <form id="ratingForm" action="{% url 'videolessons' courseid %}" method="POST">
+                      {% csrf_token %}
+                      <div class="row">
+                        <div class="col-lg-12">
+                          <div class="form-singel">
+                            <input type="hidden" id="ratingInput" name="rating" value="0">
+                            <textarea name='comment' placeholder="Напишите ваше честное мнение"></textarea>
+                          </div>
+                        </div>
+                        <div class="col-lg-12">
+                          <div class="form-singel">
+                            <div class="rate-wrapper">
+                              <div class="rate-label">Ваш рейтинг:</div>
+                              <div class="rate">
+                                <div class="rate-item" onclick="setRating(1)"><i class="fa fa-star" aria-hidden="true"></i></div>
+                                <div class="rate-item" onclick="setRating(2)"><i class="fa fa-star" aria-hidden="true"></i></div>
+                                <div class="rate-item" onclick="setRating(3)"><i class="fa fa-star" aria-hidden="true"></i></div>
+                                <div class="rate-item" onclick="setRating(4)"><i class="fa fa-star" aria-hidden="true"></i></div>
+                                <div class="rate-item" onclick="setRating(5)"><i class="fa fa-star" aria-hidden="true"></i></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="col-lg-12">
+                          <div class="form-singel">
+                            <input type="submit" class="main-btn" value='Оставить отзыв'></button>
+                          </div>
+                        </div>
+                      </div> <!-- row -->
+                    </form>
+                  </div>
+                </div> <!-- reviews cont -->
+              </div>
+            </div> <!-- tab content -->
+          </div>
+        </div> <!-- corses singel left -->
+        
+      </div>
+      <div class="col-lg-4">
+        <div class="row">
+          <div class="col-lg-12 col-md-6">
+            <div class="course-features mt-30">
+               <h4>Особенности видеокурса</h4>
+              <ul>
+                <li><i class="fa fa-clock-o"></i>Продолжительность : <span>{{duration_total}}</span></li>
+                <li><i class="fa fa-clone"></i>Количество видео : <span>{{lessons|length}} </span></li>
+                <li><i class="fa fa-user-o"></i>Количество студентов :  <span>{{subs_count}}</span></li>
+              </ul>
+              <div class="price-button pt-10">
+                <span>Цена : <b>{{course.price}} тенге</b></span>
+                <a href="{% url 'contact' %}" class="main-btn mt-10">Купить</a>
+              </div>
+            </div> <!-- course features -->
+          </div>
+          <div class="col-lg-12 col-md-6">
+            <div class="You-makelike mt-30">
+              <h4>Продолжение видеокурса</h4> 
+              {% if not others %}
+                <p>На данный момент продолжение этого видеокурса еще не вышло</p>
+              {% endif %}
+              {% for o in others %}
+              <div class="singel-makelike mt-20">
+                <div class="image">
+                  <a href="{% url 'videolessons' o.id %}">
+                    <img src="{% static 'images/your-make/y-1.jpg' %}" alt="Image">
+                  </a>
+                </div>
+                <div class="cont">
+                  <a href="{% url 'videolessons' o.id %}"><h4>{{o.name}} {{o.grade}} класс {{o.semester}} четверть</h4></a>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div> <!-- row -->
+  
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="releted-courses pt-95">
+          <div class="title">
+            <h3>Другие предметы</h3>
+            {% if not others2 %}
+              <p>Не имеется подходящих вам предметов</p>
+            {% endif %}
+          </div>
+            
+        </div>
+      </div>
+      {% for o in others2 %}
+        <div class="col-lg-4 col-md-6">
+          <div class="singel-course mt-30">
+            <div class="thum">
+              <div class="image">
+                <a href="{% url 'videolessons' o.id %}">
+                  <img src="{{ o.image.url }}" alt="Course">
+                </a>
+              </div>
+            </div>
+            <div class="cont">
+              <a href="{% url 'videolessons' o.id %}">
+                <h4>{{o.name}} {{o.grade}} класс {{o.semester}} четверть</h4>
+              </a>
+              <div class="course-teacher">
+                <div class="thum">
+                  <img src="{{ o.teacher.image.url }}" alt="teacher">
+                </div>
+                <div class="name mt-10">
+                  <h6>{{o.teacher.first_name}} {{o.teacher.last_name}}</h6>
+                </div>
+              </div>
+            </div>
+          </div> <!-- singel course -->
+        </div>
+        {% endfor %}
+    </div>
+    
+  </div> <!-- container -->
+</section>
+<script src="{% static 'js/lazy.js' %}"></script>
+<script>
+    function setRating(rating) {
+        document.getElementById('ratingInput').value = rating;
+        console.log(document.getElementById('ratingInput').value)
+    }
+</script>
+<!--====== COURSES SINGEl PART ENDS ======-->
+{% if messages %}
+  {% for message in messages %}
+      {% if message.tags == 'success' %}
+          <div class="custom-alert success-message" id="Message">
+              <p>{{message}}</p>
+          </div>
+      {% elif message.tags == 'error' %}
+          <div class="custom-alert failure-message" id="Message">
+              <p>{{message}}</p>
+          </div>
+      {% endif %}
+  
+  {% endfor %}
+{% endif %}
+{% endblock content %}
+
+{% block last %}
+<script>
+    $(document).ready(function() {
+        $('#Message').css('visibility', 'visible').css('opacity', '1');
+        setTimeout(function() {
+            $('#Message').css('visibility', 'hidden').css('opacity', '0');
+        }, 5000); // Hide the message after 3 seconds (adjust as needed)
+    });
+
+</script>
+<script>
+    document.querySelectorAll('#navbarSupportedContent ul li')[1].querySelector('a').classList.add('active');
+</script>
+{% endblock last %}

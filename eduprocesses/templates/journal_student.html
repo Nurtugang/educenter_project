@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+{% load static %}
+
+{% block content %}
+<section id="page-banner" class="pt-55 pb-60 bg_cover" data-overlay="8">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-banner-cont">
+                    <h2>Мой дневник</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'index' %}">Домашняя страница</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Дневник</li>
+                        </ol>
+                    </nav>
+                </div>  <!-- page banner cont -->
+            </div>
+        </div> <!-- row -->
+    </div> <!-- container -->
+</section>
+<!--====== PAGE BANNER PART ENDS ======-->
+
+<section class="pt-30 pb-30 gray-bg">
+	<div class="container">
+		<div class="row align-items-center">
+			<div class="col-md-12" style="background-color: white; padding-left: 30px; padding-right: 30px; padding-top: 30px;">
+				<h4 class="super-centered"><strong>Выберите четверть:</strong></h4>
+			</div>
+		</div>
+
+		<div class="row align-items-center">
+			<div class="col-md-12 mb-3" style="background-color: white; padding: 30px;">
+				<form method="post" action="{% url 'journal_student' %}">
+					<div class="d-flex flex-column flex-md-row justify-content-between">
+                        {% csrf_token %}
+                        <button style="border-radius: 0px; width: 100%; margin-bottom: 10px;" type="submit" class="main-btn quarter-button {% if selected_quarter == '1' %}selected{% endif %}" name="Q1" value="1">1 четверть</button>
+                        <button style="border-radius: 0px; width: 100%; margin-bottom: 10px;" type="submit" class="main-btn quarter-button {% if selected_quarter == '2' %}selected{% endif %}" name="Q2" value="2">2 четверть</button>
+                        <button style="border-radius: 0px; width: 100%; margin-bottom: 10px;" type="submit" class="main-btn quarter-button {% if selected_quarter == '3' %}selected{% endif %}" name="Q3" value="3">3 четверть</button>
+                        <button style="border-radius: 0px; width: 100%; margin-bottom: 10px;" type="submit" class="main-btn quarter-button {% if selected_quarter == '4' %}selected{% endif %}" name="Q4" value="4">4 четверть</button>
+                    </div>
+				</form>
+			</div>
+		
+			<div class="content-section col-lg-12 " style="background-color: white; padding: 30px;">
+				<div class="row mb-4">
+					<div class="col-md-4">
+						<div class="info-box p-2 mb-3" style="border: 1px solid #ddd; border-radius: 8px;">
+							<h6 class="info-title text-center mb-2"><strong>Группы</strong></h6>
+                            <ul class="list-group list-group-flush text-center">
+								{% for g in all_groups %}
+									<li class="list-group-item py-1">{{ g.name }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+					
+					<div class="col-md-4">
+						<div class="info-box p-2 mb-3 text-center" style="border: 1px solid #ddd; border-radius: 8px;">
+							<h6 class="info-title"><strong>Студент</strong></h6>
+							<p class="mb-1">{{ user.first_name }} {{ user.last_name }}</p>
+						</div>
+					</div>
+                    <div class="col-md-4">
+                        <div class="info-box p-2 mb-3" style="border: 1px solid #ddd; border-radius: 8px;">
+                            <h6 class="info-title text-center mb-2"><strong>Учителя</strong></h6>
+                            <ul class="list-group list-group-flush text-center">
+                                {% for t in all_teachers %}
+                                    <li class="list-group-item py-1">{{ t.first_name }} {{ t.last_name }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+				<div class="col-md-12" style="background-color: white; padding: 0px 30px">
+					<h4 class="super-centered"><strong>Мои оценки</strong></h4>
+				</div>
+				{% if dates %}
+				<div class="card mt-3 p-2  text-center" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1)">
+					<p style="font-size: small;"><strong>Условные обозначения:</strong> <span class="ml-2"><i class="text-primary">НБ</i> - не был, <i class="text-primary">НБ(П)</i> - не был, имеет причину, <i class="text-primary">Отм</i> - урок был отменен, <i class="text-primary">Зам</i> - учитель был заменен</span></p>
+				</div>
+					<div class="table-container mt-3" style="overflow-x: auto;">
+						<table class="table table-bordered">
+							<thead>
+								<tr>
+									<th class="text-center">Предмет</th>
+									{% for date in dates %}
+										<th class="text-center">{{date|date:"d.m.y"}}</th>
+									{% endfor %}
+								</tr>
+							</thead>
+							<tbody>
+								{% for key, queryset in lessons_data.items %}
+						            <tr>
+						            	<th class="text-center">{{key}}</th>
+						            	{% for date in dates %}
+						            		<td class="text-center dnevnik-cell">
+						                        {% for q in queryset %}
+						                        	{% if date == q.lesson.date %}
+								                        <a href="{% url 'lesson_student' q.lesson.id %}">
+						                        			{{q|get_dnevnik_data}}
+								                        </a>
+						                        	{% endif %}
+						                        {% endfor %}
+						                    </td>
+						                {% endfor %}
+						            </tr>
+						        {% endfor %}
+							</tbody>
+						</table>
+					</div>
+				{% else %}
+					<p>Уроков в этой четверти у вас пока нет</p>
+				{% endif %}
+				
+			</div>
+		</div>	
+		
+	
+	
+	</div>
+</section>
+
+
+{% endblock content %}
+
+{% block last %}
+<script>
+	var dnevnikCells = document.querySelectorAll('.dnevnik-cell');
+	console.log(dnevnikCells)
+	dnevnikCells.forEach(function(cell) {
+	    if (cell.innerHTML.trim() === '') { 
+	        cell.classList.add('highlighted-cell');
+	    }
+	    console.log(cell.innerHTML.trim())
+	    if(cell.innerHTML.trim() === 'O')
+	    	cell.innerHTML = 'ss'
+	});
+</script>
+<script>
+	document.querySelectorAll('#navbarSupportedContent ul li')[3].querySelector('a').classList.add('active');
+</script>
+{% endblock last %}

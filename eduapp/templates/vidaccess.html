@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load my_filters %}
+{% block head %}
+<!-- Meta Pixel Code -->
+    <script>
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '941143561179603');
+        fbq('track', 'PageView');
+    </script>
+    <noscript>
+        <img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=941143561179603&ev=PageView&noscript=1"/>
+    </noscript>
+    <meta name="facebook-domain-verification" content="3aymgvvrqzuh4hpr6hasrjsuho8fzp" />
+    <!-- End Meta Pixel Code -->
+{% endblock head %}
+{% block content %}
+<!--====== PAGE BANNER PART START ======-->
+  
+<style>
+  .singel-description p, .instructor-description p{
+    text-indent: 1.5em;
+    text-align: justify;
+    font-weight: 400;
+  }
+
+  .success-message {
+    background-color: limegreen; /* Yellow color for success message */
+    color: #395471; /* Blue color for success message */
+  }
+
+  .failure-message {
+      background-color: #e74c3c; /* Red color for failure message */
+      color: white; /* White color for failure message text */
+  }
+
+  .btn-buy:hover{
+    background-color:limegreen !important;
+  }
+    
+</style>
+
+<!--====== COURSES SINGEl PART START ======-->
+
+<section id="corses-singel" class="pt-30 pb-120 gray-bg">
+  <div class="container">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="row">
+                <div class="col-lg-12 col-md-6">
+                    <div class="alert alert-info text-center" style="background: linear-gradient(90deg, #4CAF50, #81C784); color: white;">
+                      <h6 style="font-size: 1.8em; font-weight: bold; color: #fff;">
+                        Успейте получить <strong>17 бесплатных видеоуроков</strong> для подготовки к НИШ, РФМШ, БИЛ!
+                      </h6>
+                      <p style="font-size: 1.2em; margin-top: 10px; color: #fff;">
+                        Ваша возможность истекает через: <span id="countdown-timer" style="font-weight: bold; color: red;"></span>
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div class="col-lg-12 col-md-6">
+                    <div class="You-makelike">
+                      {% if form %}
+                      <h4 class="text-center">Получите бесплатные видеоуроки для подготовки!</h4>
+                      <div class="form-container contact-from" style="padding: 0px !important;">
+                        <form method="POST" class="main-form">
+                          {% csrf_token %}
+                          <div class="singel-form form-group">
+                            {{ form.name }}
+                          </div>
+                          <div class="singel-form form-group">
+                            {{ form.phone }}
+                          </div>
+                          <div class="form-group singel-form">
+                            <button type="submit" class="btn main-btn btn-block btn-buy">
+                              Отправить мои данные для получения бесплатных видеоуроков!
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  
+            </div>
+          </div>
+      <div class="col-lg-12">
+        <div class="corses-singel-left p-0" >
+          <div class="corses-tab">
+              <h4 class="text-center">Эти видеоуроки будут доступны после того как вы оставите свои контакты!</h4>
+            <div class="tab-content" id="myTabContent">
+              <div class="tab-pane fade show active" id="curriculam" role="tabpanel" aria-labelledby="curriculam-tab">
+                <div class="curriculam-cont" style="filter:blur(2px)">
+                  <div class="accordion" id="accordionExample">
+                    {% for l in lessons %}
+                    <div class="card">
+                      <div class="card-header" id="heading{{l.id}}">
+                        <a href="#" data-toggle="collapse" data-target="#collapse{{l.id}}" aria-expanded="true" aria-controls="collapse{{l.id}}">
+                          <ul>
+                            <li><i class="fa fa-file-o"></i></li>
+                            <li><span class="lecture">Видеоурок {{forloop.counter}}</span></li>
+                            <li><span class="head">{{l.name}}</span></li>
+                            <li><span class="time d-none d-md-block"><i class="fa fa-clock-o"></i> <span>{{ l.dur_kaz }}</span></span></li>
+                          </ul>
+                        </a>
+                      </div>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div> <!-- curriculam cont -->
+              </div>
+            </div> <!-- tab content -->
+          </div>
+        </div> <!-- corses singel left -->
+        
+      </div>
+      
+    </div> <!-- row -->
+  
+  </div> <!-- container -->
+</section>
+
+
+
+<script src="{% static 'js/lazy.js' %}"></script>
+<!--====== COURSES SINGEl PART ENDS ======-->
+{% if messages %}
+  {% for message in messages %}
+      {% if message.tags == 'success' %}
+          <div class="custom-alert success-message" id="Message">
+              <p>{{message}}</p>
+          </div>
+      {% elif message.tags == 'error' %}
+          <div class="custom-alert failure-message" id="Message">
+              <p>{{message}}</p>
+          </div>
+      {% endif %}
+  
+  {% endfor %}
+{% endif %}
+{% endblock content %}
+{% block last %}
+<script>
+  // Таймер для отсчета акции
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    function startCountdown(duration, display) {
+        var timer = duration, minutes, seconds;
+        setInterval(function () {
+            minutes = Math.floor((timer % 3600) / 60); // Минуты
+            seconds = Math.floor(timer % 60); // Секунды
+
+            display.textContent = minutes + " м " + seconds + " с ";
+
+            if (--timer < 0) {
+                timer = 0;
+                display.textContent = "Акция закончилась!";
+            }
+        }, 1000);
+    }
+
+    // Получаем оставшееся время из шаблона Django
+    var countdownDuration = parseInt('{{remaining_time}}');
+    console.log(countdownDuration)
+    var display = document.querySelector('#countdown-timer');
+    startCountdown(countdownDuration, display);
+  });
+</script>
+<script>
+    $(document).ready(function() {
+        $('#Message').css('visibility', 'visible').css('opacity', '1');
+        setTimeout(function() {
+            $('#Message').css('visibility', 'hidden').css('opacity', '0');
+        }, 5000); // Hide the message after 3 seconds (adjust as needed)
+    });
+
+</script>
+
+<script>
+    document.querySelectorAll('#navbarSupportedContent ul li')[1].querySelector('a').classList.add('active');
+</script>
+{% endblock last %}

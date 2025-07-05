@@ -1,0 +1,403 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'quizer/css/quizer_results_style.css' %}">
+    <!-- Chart.js для диаграмм -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+    .stat-card {
+        background-color: white;
+        padding: 20px;
+        border-radius: 5px;
+        text-align: center;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .stat-card h3 {
+        color: #ed7e4a;
+        font-size: 28px;
+        margin-bottom: 5px;
+    }
+
+    .stat-card p {
+        color: #8a8a8a;
+        font-size: 14px;
+        margin: 0;
+    }
+
+    .chart-container {
+        background-color: white;
+        padding: 30px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .chart-wrapper {
+        position: relative;
+        height: 300px;
+        margin: 20px 0;
+    }
+    
+    .table-excellent {
+        background-color: #d4edda !important;
+    }
+    
+    .table-good {
+        background-color: #d1ecf1 !important;
+    }
+    
+    .table-average {
+        background-color: #fff3cd !important;
+    }
+    
+    .table-poor {
+        background-color: #f8d7da !important;
+    }
+    
+    .change-indicator {
+        font-weight: bold;
+    }
+    
+    .change-up {
+        color: #28a745;
+    }
+    
+    .change-down {
+        color: #dc3545;
+    }
+    
+    .change-same {
+        color: #6c757d;
+    }
+    </style>
+{% endblock head %}
+
+{% block content %}
+
+<section id="page-banner" class="pt-55 pb-60 bg_cover" data-overlay="8">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-banner-cont">
+                    <h3>Результаты тестирования</h3>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'index' %}">Домашняя страница</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'quizer_choose' %}">Выбор теста</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Результаты</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="pt-30 pb-120 gray-bg">
+    <div class="container">
+        <div class="results-label">Результаты теста</div>
+        <p>Предмет: {{quiz}}. Язык: {{language}}</p>
+        
+        <!-- Статистические карточки -->
+        {% if stats.total_attempts > 0 %}
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <h3>{{stats.total_attempts}}</h3>
+                    <p>Всего попыток</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <h3>{{stats.average_score}}%</h3>
+                    <p>Средний балл</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <h3>{{stats.best_score}}%</h3>
+                    <p>Лучший результат</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <h3>{{stats.last_score}}%</h3>
+                    <p>Последний результат</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Графики -->
+        {% if stats.total_attempts > 1 %}
+        <div class="row mb-4">
+            <!-- Динамика результатов -->
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h4><strong>Динамика результатов</strong></h4>
+                    <div class="chart-wrapper">
+                        <canvas id="progressChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Сравнение попыток -->
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h4><strong>Сравнение всех попыток</strong></h4>
+                    <div class="chart-wrapper">
+                        <canvas id="attemptsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        <!-- Таблица результатов -->
+        <div class="table-container" style="overflow-x: auto;">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th class="text-center">Попытка</th>
+                        <th class="text-center">Результат</th>
+                        <th class="text-center">Процент</th>
+                        <th class="text-center">Изменение</th>
+                        <th class="text-center">Подробнее</th>
+                        <th class="text-center">Отчет</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in results %}
+                    <tr class="
+                        {% if result.percentage >= 80 %}table-excellent
+                        {% elif result.percentage >= 60 %}table-good  
+                        {% elif result.percentage >= 40 %}table-average
+                        {% else %}table-poor{% endif %}">
+                        <td class="text-center">{{ result.attempt_number }}</td>
+                        <td class="text-center">{{ result.correct_answers_count }}/{{ result.total_questions_count }}</td>
+                        <td class="text-center"><strong>{{ result.percentage }}%</strong></td>
+                        <td class="text-center">
+                            {% if result.change_direction == 'first' %}
+                                <span class="text-muted">Первая попытка</span>
+                            {% elif result.change_direction == 'up' %}
+                                <span class="change-indicator change-up">↑ +{{ result.change }}%</span>
+                            {% elif result.change_direction == 'down' %}
+                                <span class="change-indicator change-down">↓ {{ result.change }}%</span>
+                            {% elif result.change_direction == 'same' %}
+                                <span class="change-indicator change-same">→ {{ result.change }}%</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-primary mr-2 btn-question view-result-btn" data-toggle="modal" data-target="#resModal_{{ result.attempt_number }}">
+                                Посмотреть
+                            </button>
+                        </td>
+                        <td class="text-center">
+                            <form action="{% url 'generate-document' quiz_id result.attempt_number %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary mr-2 btn-question">
+                                    <i class="fa fa-file-word-o" aria-hidden="true"></i> Скачать результаты
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    
+                    <!-- Модальное окно для каждой попытки -->
+                    <div class="modal fade" id="resModal_{{ result.attempt_number }}" tabindex="-1" role="dialog" aria-labelledby="resModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title" id="resModalLabel">Работа над ошибками - Попытка №{{ result.attempt_number }}</h4>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    {% if result.correct_answers_count != result.total_questions_count %}
+                                        {% for user_answer, correct_answer in result.data %}
+                                            <div class="question-container">
+                                                <div class="question">
+                                                    <h5>
+                                                        {{ forloop.counter }}. {{ user_answer.question }}
+                                                    </h5>
+                                                </div>
+                                                <div class="question-image mt-3 mb-3">
+                                                    {% if user_answer.question.image %}
+                                                        <img src="{{ user_answer.question.image.url }}" class="img-fluid">
+                                                    {% endif %}
+                                                </div>
+                                                <div class="answers">
+                                                    <p>Ваш ответ: <span style="color: red">{{ user_answer.answer.text }}</span></p>
+                                                    <p>Правильный: <span style="color: green">{{ correct_answer.text }}</span></p>
+                                                </div>
+                                                <br>                                                    
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <h4>Все ответы правильные! 🎉</h4>
+                                        <p>Поздравляем с отличным результатом!</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="navigation-buttons">
+            <a href="{% url 'quizer_choose' %}" id="next" type="button" class="btn btn-primary">Назад к выборам тестов</a>
+        </div>
+    </div>
+</section>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+<script>
+// Получаем данные из Django
+const chartData = {{chart_data|safe}};
+
+// Конфигурация цветов
+const colors = {
+    primary: '#47a5c9',
+    secondary: '#ed7e4a',
+    success: '#28a745',
+    warning: '#ffc107',
+    danger: '#dc3545'
+};
+
+// График динамики результатов (только если больше одной попытки)
+{% if stats.total_attempts > 1 %}
+const progressCtx = document.getElementById('progressChart').getContext('2d');
+new Chart(progressCtx, {
+    type: 'line',
+    data: {
+        labels: chartData.attempts.map(attempt => 'Попытка ' + attempt),
+        datasets: [{
+            label: 'Результат (%)',
+            data: chartData.scores,
+            borderColor: colors.primary,
+            backgroundColor: colors.primary + '20',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.1,
+            pointBackgroundColor: colors.primary,
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                    stepSize: 10,
+                    callback: function(value) {
+                        return value + '%';
+                    }
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const dataPoint = chartData.detailed_data[context.dataIndex];
+                        return `${context.parsed.y.toFixed(1)}% (${dataPoint.correct}/${dataPoint.total})`;
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Столбчатая диаграмма сравнения попыток
+const attemptsCtx = document.getElementById('attemptsChart').getContext('2d');
+new Chart(attemptsCtx, {
+    type: 'bar',
+    data: {
+        labels: chartData.attempts.map(attempt => 'Попытка ' + attempt),
+        datasets: [{
+            label: 'Результат (%)',
+            data: chartData.scores,
+            backgroundColor: chartData.scores.map(score => {
+                if (score >= 80) return colors.success;
+                if (score >= 60) return colors.primary;
+                if (score >= 40) return colors.warning;
+                return colors.danger;
+            }),
+            borderColor: chartData.scores.map(score => {
+                if (score >= 80) return colors.success;
+                if (score >= 60) return colors.primary;
+                if (score >= 40) return colors.warning;
+                return colors.danger;
+            }),
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                    stepSize: 10,
+                    callback: function(value) {
+                        return value + '%';
+                    }
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const dataPoint = chartData.detailed_data[context.dataIndex];
+                        return `${context.parsed.y.toFixed(1)}% (${dataPoint.correct}/${dataPoint.total})`;
+                    }
+                }
+            }
+        }
+    }
+});
+{% endif %}
+
+// Обработчик модальных окон
+$(document).ready(function() {
+    $('.view-result-btn').click(function() {
+        // Дополнительная логика если нужна
+    });
+});
+</script>
+
+<script>
+	{% if user.is_authenticated %}
+			{% if user.groups.all.first.name == 'Студент' %}	
+				document.querySelectorAll('#navbarSupportedContent ul li')[5].querySelector('a').classList.add('active');
+			{% else %}
+				document.querySelectorAll('#navbarSupportedContent ul li')[7].querySelector('a').classList.add('active');
+			{% endif %}
+	{% else %}
+		document.querySelectorAll('#navbarSupportedContent ul li')[4].querySelector('a').classList.add('active');
+	{% endif %}
+</script>
+
+{% endblock content %}

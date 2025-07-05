@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head %}
+	<link rel="stylesheet" href="{% static 'quizer/css/quizer_choose_style.css' %}">
+	<link rel="stylesheet" href="{% static 'open_quiz/css/open_quiz_choose.css' %}">
+{% endblock head %}
+
+{% block content %}
+
+<section id="page-banner" class="pt-55 pb-60 bg_cover" data-overlay="8">
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-12">
+				<div class="page-banner-cont">
+					<h3>Тестирование</h3>
+					<nav aria-label="breadcrumb">
+						<ol class="breadcrumb">
+							<li class="breadcrumb-item"><a href="{% url 'index' %}">Домашняя страница</a></li>
+							<li class="breadcrumb-item active" aria-current="page">Выбор теста</li>
+						</ol>
+					</nav>
+				</div>  <!-- page banner cont -->
+			</div>
+		</div> <!-- row -->
+	</div> <!-- container -->
+</section>
+
+
+<div class="container mt-5 mb-2">
+    <div class="row justify-content-center">
+        {% for subject in qs %}
+            <div class="col-md-4 mb-5">
+                <a href="{% url 'quiz_page' %}?quiz_id={{ subject.id }}" class="subject-link">
+                    <div class="card shadow">
+                        <div style="background-color: #def1f7;" class="card-header text-white text-center">
+                            <h3><strong>{{ subject.name }}</strong></h3>
+                        </div>
+                        <div class="card-body text-center">
+                            <p class="card-text">
+                                <strong>Язык:</strong> {{ subject.get_language_display }}<br>
+                                <strong>Лимит времени:</strong> {{ subject.time_limit_minutes }} минут
+                            </p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+
+{% endblock content %}
+{% block last %}
+<script>
+	{% if user.is_authenticated %}
+			{% if user.groups.all.first.name == 'Студент' %}	
+				document.querySelectorAll('#navbarSupportedContent ul li')[5].querySelector('a').classList.add('active');
+			{% else %}
+				document.querySelectorAll('#navbarSupportedContent ul li')[7].querySelector('a').classList.add('active');
+			{% endif %}
+	{% else %}
+		document.querySelectorAll('#navbarSupportedContent ul li')[4].querySelector('a').classList.add('active');
+	{% endif %}
+</script>
+{% endblock last %}

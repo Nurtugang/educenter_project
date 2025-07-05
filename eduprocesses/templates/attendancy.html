@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+{% load custom_tags %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" type="text/css" href="{% static 'date/daterangepicker.css' %}" />
+<style>
+  .sortable {
+  cursor: pointer;
+  position: relative;
+}
+
+.sort-indicator {
+  display: inline-block;
+  margin-left: 5px;
+  font-size: 12px;
+  visibility: hidden; /* Изначально скрыто */
+}
+
+.sortable.active .sort-indicator {
+  visibility: visible; /* Показываем стрелку, если заголовок активен */
+}
+
+th.sortable.active {
+  background-color: #f0f0f0;
+  color: #333;
+  border-bottom: 2px solid #007bff;
+  box-shadow: 0 4px 2px -2px gray;
+}
+th.sortable:hover {
+  background-color: #f0f0f0;
+  cursor: pointer;
+}
+th.sortable.active {
+  border-bottom: 2px solid #007bff;
+  box-shadow: 0 4px 2px -2px gray;
+}
+</style>
+{% endblock head %}
+
+{% block content %}
+<section id="page-banner" class="pt-55 pb-60 bg_cover" data-overlay="8">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-banner-cont">
+                    <h2>Посещаемость учеников</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'index' %}">Домашняя страница</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Посещаемость</li>
+                        </ol>
+                    </nav>
+                </div>  <!-- page banner cont -->
+            </div>
+        </div> <!-- row -->
+    </div> <!-- container -->
+</section>
+<!--====== PAGE BANNER PART ENDS ======-->
+
+<section class="pt-30 pb-120 gray-bg">
+	<div class="container mt-5">
+		<div class="row">
+			<div class="col-lg-12">
+				<form id="tabel-date-form" method="post" action="{% url 'attendancy' %}">
+					{% csrf_token %}
+					<div class="row">
+						<div class="col-md-12" style="background-color: white; padding-left: 30px; padding-right: 30px; padding-top: 30px;">
+							<div class="d-flex justify-content-between align-items-center">
+    							<input class="form-control" style="height: 52px" type="text" name="tabel-date" >
+								<button style="height:100%; border-radius: 0px" type="submit"  class="form-control main-btn quarter-button {% if selected_period == 'week' %}selected{% endif %}" name="tabel-date" value="week">За эту неделю</button>
+								<button style="height:100%; border-radius: 0px" type="submit"  class="form-control main-btn quarter-button {% if selected_period == 'month' %}selected{% endif %}" name="tabel-date" value="month">За этот месяц</button>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-12 mb-3" style="background-color: white; padding: 30px;">
+							<div class="d-flex justify-content-between">
+								<button style="height:100%; border-radius: 0px" type="submit"  class="form-control main-btn quarter-button {% if selected_period == '1' %}selected{% endif %}" name="tabel-quarter" value="1">1 четверть</button>
+								<button style="height:100%; border-radius: 0px" type="submit" class="form-control main-btn quarter-button {% if selected_period == '2' %}selected{% endif %}" name="tabel-quarter" value="2">2 четверть</button>
+								<button style="height:100%; border-radius: 0px" type="submit" class="form-control main-btn quarter-button {% if selected_period == '3' %}selected{% endif %}" name="tabel-quarter" value="3">3 четверть</button>
+								<button style="height:100%; border-radius: 0px" type="submit" class="form-control main-btn quarter-button {% if selected_period == '4' %}selected{% endif %}" name="tabel-quarter" value="4">4 четверть</button>
+							</div>
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="col-lg-12 mb-3" style="background-color: white; padding: 30px;">
+				<h1>Посещаемость</h1>
+				<p style="background-color: #f8f9fa; padding: 10px; border-left: 4px solid #007bff; border-radius: 4px; font-size: 14px; color: #555;">
+					<em>Для сортировки по колонке нажмите на заголовок. Повторное нажатие меняет направление сортировки.</em>
+				</p>
+				<br>
+				{% if is_admin or is_teacher %}
+					{% if students %}
+						<div class="table-container" style="overflow-x: auto;">
+							<table class="table table-bordered">
+							<thead>
+								<tr>
+									<th></th>
+									{% for status in attendance_status_choices %}
+										<th class="sortable text-center" data-sort-key="{{ status.0 }}">
+											{{ status.1 }}
+											<i class="fa fa-arrow-up sort-indicator" aria-hidden="true"></i> <!-- Изначально стрелка вверх -->
+										</th>
+									{% endfor %}
+									<th class="sortable text-center" data-sort-key="cancelled">Отмененные/Не завершенные уроки
+										<i class="fa fa-arrow-up sort-indicator" aria-hidden="true"></i> <!-- Изначально стрелка вверх -->
+
+									</th>
+									<th class="sortable text-center" data-sort-key="all">Все уроки
+										<i class="fa fa-arrow-up sort-indicator" aria-hidden="true"></i> <!-- Изначально стрелка вверх -->
+
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+								{% for student in students %}
+									<tr>
+										<td>{{student.first_name}} {{student.last_name}}</td>
+										{% for status in attendance_status_choices %}
+											<td class="text-center">
+												{% get_student_statuses student status choosen_range %}
+											</td>
+										{% endfor %}
+										<td class="text-center">{% get_bad_lessons student choosen_range %}</td>
+										<td class="text-center">{% get_student_statuses_sum student choosen_range %}</td>
+									</tr>
+								{% endfor %}
+
+							</tbody>
+							</table>
+						</div>
+					{% else %}
+					<div class="row mt-30">
+						<div class="col-lg-12 text-center">
+							<div class="alert alert-warning" role="alert">
+								<h4 class="alert-heading">За выбранный период информации о посещениях студентов не найдено!</h4>
+								<p>Если вы уверены что данные должны быть попробуйте перезагрузить страницу, и указать период еще раз.</p>
+							</div>
+						</div>
+					</div> <!-- row -->
+					{% endif %}
+				{% endif %}
+			</div>
+		</div>
+	</div>
+</section>	
+{% endblock content %}
+
+{% block last %}
+<script type="text/javascript" src="{% static 'date/moment.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'date/daterangepicker.min.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const headers = document.querySelectorAll('.sortable');
+
+  headers.forEach(header => {
+    header.addEventListener('click', () => {
+      const table = header.closest('table');
+      const index = Array.from(header.parentElement.children).indexOf(header);
+      const isCurrentlyActive = header.classList.contains('active');
+      const isDescending = header.classList.contains('desc');
+
+      // Сброс состояния всех заголовков и иконок
+      headers.forEach(h => {
+        h.classList.remove('asc', 'desc', 'active');
+        const indicator = h.querySelector('.sort-indicator');
+        if (indicator) {
+          indicator.classList.remove('fa-arrow-up');
+          indicator.classList.add('fa-arrow-down'); // Сброс к стрелке вниз
+        }
+      });
+
+      // Устанавливаем новое состояние для активного заголовка
+      header.classList.add('active');
+      const indicator = header.querySelector('.sort-indicator');
+      if (isCurrentlyActive && isDescending) {
+        header.classList.add('asc');
+        indicator.classList.remove('fa-arrow-down');
+        indicator.classList.add('fa-arrow-up'); // Меняем на стрелку вверх
+        sortTable(table, index, true);
+      } else {
+        header.classList.add('desc');
+        indicator.classList.remove('fa-arrow-up');
+        indicator.classList.add('fa-arrow-down'); // Меняем на стрелку вниз
+        sortTable(table, index, false);
+      }
+    });
+  });
+
+  function sortTable(table, columnIndex, ascending) {
+    const rows = Array.from(table.querySelectorAll('tbody > tr'));
+
+    rows.sort((a, b) => {
+      const aText = a.cells[columnIndex].textContent.trim();
+      const bText = b.cells[columnIndex].textContent.trim();
+      const aValue = isNaN(aText) ? aText : parseFloat(aText);
+      const bValue = isNaN(bText) ? bText : parseFloat(bText);
+
+      if (aValue < bValue) return ascending ? -1 : 1;
+      if (aValue > bValue) return ascending ? 1 : -1;
+      return 0;
+    });
+
+    const tbody = table.querySelector('tbody');
+    rows.forEach(row => tbody.appendChild(row));
+  }
+});
+
+</script>
+<script>
+  $('input[name="tabel-date"]').daterangepicker({
+    "minYear": 2023,
+    "locale": {
+        "format": "YYYY-MM-DD",
+        "separator": " - ",
+        "applyLabel": "Выбрать",
+        "cancelLabel": "Отменить",
+        "fromLabel": "From",
+        "toLabel": "To",
+        "customRangeLabel": "Custom",
+        "weekLabel": "W",
+        "daysOfWeek": [
+            "Пн",
+            "Вт",
+            "Ср",
+            "Чт",
+            "Пт",
+            "Сб",
+            "Вс"
+        ],
+        "monthNames": [
+            "Январь",
+            "Февраль",
+            "Март",
+            "Апрель",
+            "Май",
+            "Июнь",
+            "Июль",
+            "Август",
+            "Сентябрь",
+            "Октябрь",
+            "Ноябрь",
+            "Декабрь"
+        ],
+        "firstDay": 1
+    },
+    "startDate": "{{start_date}}",
+    "endDate": "{{end_date}}"}, function(start, end, label) {
+  console.log('New date range selected: ' + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD') + ' (predefined range: ' + label + ')');
+});
+$('input[name="tabel-date"]').on('apply.daterangepicker', function(ev, picker) {
+  $('#tabel-date-form').submit();
+});
+</script>
+
+<script>
+	{% if user.groups.all.first.name == 'Преподаватель' %}	
+	document.querySelectorAll('#navbarSupportedContent ul li')[5].querySelector('a').classList.add('active');
+	{% elif user.groups.all.first.name == 'Администратор' %}
+	document.querySelectorAll('#navbarSupportedContent ul li')[4].querySelector('a').classList.add('active');
+	{% endif %}
+</script>
+{% endblock last %}

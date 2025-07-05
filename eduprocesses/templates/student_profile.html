@@ -1,0 +1,713 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block head %}
+<!-- Chart.js для диаграмм -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Датапикер для выбора периодов -->
+<link rel="stylesheet" type="text/css" href="{% static 'date/daterangepicker.css' %}" />
+<style>
+.profile-card {
+    background-color: white;
+    padding: 30px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.stat-card {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.stat-card h3 {
+    color: #ed7e4a;
+    font-size: 28px;
+    margin-bottom: 5px;
+}
+
+.stat-card p {
+    color: #8a8a8a;
+    font-size: 14px;
+    margin: 0;
+}
+
+.chart-container {
+    background-color: white;
+    padding: 30px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.chart-wrapper {
+    position: relative;
+    height: 300px;
+    margin: 20px 0;
+}
+
+.quarter-selector {
+    background-color: white;
+    padding: 20px 30px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.progress-bar-custom {
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    height: 20px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+.progress-fill {
+    background-color: #47a5c9;
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+}
+
+.progress-fill.excellent {
+    background-color: #28a745;
+}
+
+.progress-fill.good {
+    background-color: #47a5c9;
+}
+
+.progress-fill.average {
+    background-color: #ffc107;
+}
+
+.progress-fill.poor {
+    background-color: #dc3545;
+}
+
+.subject-row {
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.subject-row:last-child {
+    border-bottom: none;
+}
+</style>
+{% endblock head %}
+
+{% block content %}
+
+<section id="page-banner" class="pt-55 pb-60 bg_cover" data-overlay="8">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-banner-cont">
+                    <h2>Досье ученика</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'index' %}">Домашняя страница</a></li>
+                            {% if is_student %}
+                                <li class="breadcrumb-item"><a href="{% url 'profile' %}">Профиль</a></li>
+                            {% elif is_teacher %}
+                                <li class="breadcrumb-item"><a href="{% url 'journal' %}">Журнал</a></li>
+                            {% elif is_admin %}
+                                <li class="breadcrumb-item"><a href="{% url 'admin:index' %}">Админ-панель</a></li>
+                            {% endif %}
+                            <li class="breadcrumb-item active" aria-current="page">Досье: {{student.first_name}} {{student.last_name}}</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="pt-30 pb-120 gray-bg">
+    <div class="container">
+        <!-- Выбор периода как в проверке журнала -->
+        <div class="row">
+            <div class="col-lg-12">
+                <form id="period-form" method="post" action="{% url 'student_profile' student.id %}">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-12" style="background-color: white; ">
+                            <h4 class="super-centered mb-5"><strong>Выберите период для анализа:</strong></h4>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12" style="background-color: white; padding-left: 30px; padding-right: 30px;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <input class="form-control" style="height: 52px" type="text" name="tabel-date" placeholder="Выберите произвольный период">
+                                <button style="height:100%; border-radius: 0px" type="submit" class="form-control main-btn quarter-button {% if selected_period == 'week' %}selected{% endif %}" name="tabel-date" value="week">За эту неделю</button>
+                                <button style="height:100%; border-radius: 0px" type="submit" class="form-control main-btn quarter-button {% if selected_period == 'month' %}selected{% endif %}" name="tabel-date" value="month">За этот месяц</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 mb-3" style="background-color: white; padding: 30px;">
+                            <div class="d-flex justify-content-between">
+                                <button style="height:100%; border-radius: 0px" type="submit" class="form-control main-btn quarter-button {% if selected_period == '1' %}selected{% endif %}" name="tabel-quarter" value="1">1 четверть</button>
+                                <button style="height:100%; border-radius: 0px" type="submit" class="form-control main-btn quarter-button {% if selected_period == '2' %}selected{% endif %}" name="tabel-quarter" value="2">2 четверть</button>
+                                <button style="height:100%; border-radius: 0px" type="submit" class="form-control main-btn quarter-button {% if selected_period == '3' %}selected{% endif %}" name="tabel-quarter" value="3">3 четверть</button>
+                                <button style="height:100%; border-radius: 0px" type="submit" class="form-control main-btn quarter-button {% if selected_period == '4' %}selected{% endif %}" name="tabel-quarter" value="4">4 четверть</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Основная информация о студенте -->
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="profile-card">
+                    <div class="text-center">
+                        <img src="{{ student.image.url }}" alt="Фото студента" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover;">
+                        <h3 class="mt-3">{{student.first_name}} {{student.last_name}}</h3>
+                        <p class="text-muted">{{student.middle_name}}</p>
+                        <p><strong>Класс:</strong> {{student.grade}}</p>
+                        <p><strong>Дата рождения:</strong> {{student.birth_date}}</p>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h5><strong>Мои группы:</strong></h5>
+                        {% for group in student_groups %}
+                            <div class="mt-2 p-2" style="background-color: #f8f9fa; border-radius: 5px;">
+                                <strong>{{group.name}}</strong><br>
+                                <small class="text-muted">{{group.subject.name}} - {{group.group_type.name}}</small><br>
+                                <small class="text-muted">Учитель: {{group.teacher.first_name}} {{group.teacher.last_name}}</small>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <!-- Краткая статистика -->
+                <div class="row">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stat-card">
+                            <h3>{{total_lessons}}</h3>
+                            <p>Всего уроков</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stat-card">
+                            <h3>{{attendance_percentage}}%</h3>
+                            <p>Посещаемость</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stat-card">
+                            <h3>{{average_grade}}</h3>
+                            <p>Средний балл</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stat-card">
+                            <h3>{{homework_stats.completion_rate|floatformat:0}}%</h3>
+                            <p>Выполнение ДЗ</p>
+                        </div>
+                    </div>
+                </div>
+
+                {% if quiz_stats.total_attempts > 0 %}
+                <!-- Дополнительная строка статистики для тестирований -->
+                <div class="row">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stat-card">
+                            <h3>{{quiz_stats.average_score|floatformat:0}}%</h3>
+                            <p>Средний балл в тестах</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stat-card">
+                            <h3>{{quiz_stats.total_attempts}}</h3>
+                            <p>Пройдено тестов</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stat-card">
+                            <h3>{{quiz_stats.best_score|floatformat:0}}%</h3>
+                            <p>Лучший результат</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stat-card">
+                            <h3>{{quiz_stats.subjects_tested}}</h3>
+                            <p>Предметов протестировано</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Последние тесты в отдельной секции -->
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="stat-card" style="text-align: left;">
+                            <h6><strong>Последние тесты:</strong></h6>
+                            <div class="row">
+                                {% for test in quiz_stats.recent_tests|slice:":3" %}
+                                <div class="col-md-4">
+                                    <small>{{test.subject}}: <strong>{{test.score|floatformat:0}}%</strong> ({{test.correct}}/{{test.total}})</small>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Диаграмма посещаемости -->
+                <div class="chart-container">
+                    <h4><strong>Посещаемость 
+                        {% if selected_period == 'week' %}
+                            (за эту неделю)
+                        {% elif selected_period == 'month' %}
+                            (за этот месяц)
+                        {% elif selected_period in '1234' %}
+                            ({{selected_period}} четверть)
+                        {% else %}
+                            ({{start_date}} - {{end_date}})
+                        {% endif %}
+                    </strong></h4>
+                    <div class="chart-wrapper">
+                        <canvas id="attendanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Графики и диаграммы -->
+        <div class="row">
+            <!-- Распределение оценок -->
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h4><strong>Распределение оценок в журнале</strong></h4>
+                    <div class="chart-wrapper">
+                        <canvas id="gradesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Динамика оценок -->
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h4><strong>Динамика оценок (последние 10 уроков)</strong></h4>
+                    <div class="chart-wrapper">
+                        <canvas id="gradeTimelineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+
+        <!-- Статистика по предметам (только журнал) -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="chart-container">
+                    <h4><strong>Успеваемость по предметам (журнал)</strong></h4>
+                    {% for subject, stats in subjects_stats.items %}
+                        <div class="subject-row">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <strong>{{subject}}</strong>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted">Средний балл</small>
+                                    <div class="progress-bar-custom">
+                                        <div class="progress-fill {% if stats.avg_grade >= 8 %}excellent{% elif stats.avg_grade >= 6 %}good{% elif stats.avg_grade >= 4 %}average{% else %}poor{% endif %}" 
+                                             style="width: {{stats.avg_grade|multiply:10}}%"></div>
+                                    </div>
+                                    <span>{{stats.avg_grade|floatformat:1}}/10</span>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted">Посещаемость</small>
+                                    <div class="progress-bar-custom">
+                                        <div class="progress-fill {% if stats.attendance_rate >= 90 %}excellent{% elif stats.attendance_rate >= 75 %}good{% elif stats.attendance_rate >= 60 %}average{% else %}poor{% endif %}" 
+                                             style="width: {{stats.attendance_rate}}%"></div>
+                                    </div>
+                                    <span>{{stats.attendance_rate|floatformat:0}}%</span>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted">Уроков: {{stats.total_lessons}}</small><br>
+                                    <small class="text-muted">Оценок: {{stats.grades|length}}</small>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Тестирования (если доступно) -->
+        {% if quiz_stats.total_attempts > 0 %}
+        <div class="row">
+            <!-- Результаты тестирований по предметам -->
+            <div class="col-lg-12">
+                <div class="chart-container">
+                    <h4><strong>Результаты тестирований по предметам</strong></h4>
+                    <div class="chart-wrapper">
+                        <canvas id="quizSubjectsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Статистика по тестированиям (если доступно) -->
+        {% if quiz_stats.subjects_performance %}
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="chart-container">
+                    <h4><strong>Результаты тестирований по предметам</strong></h4>
+                    {% for subject, stats in quiz_stats.subjects_performance.items %}
+                        <div class="subject-row">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <strong>{{subject}}</strong>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted">Средний результат</small>
+                                    <div class="progress-bar-custom">
+                                        <div class="progress-fill {% if stats.average >= 80 %}excellent{% elif stats.average >= 60 %}good{% elif stats.average >= 40 %}average{% else %}poor{% endif %}" 
+                                             style="width: {{stats.average}}%"></div>
+                                    </div>
+                                    <span>{{stats.average|floatformat:1}}%</span>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted">Лучший результат</small>
+                                    <div class="progress-bar-custom">
+                                        <div class="progress-fill {% if stats.best >= 80 %}excellent{% elif stats.best >= 60 %}good{% elif stats.best >= 40 %}average{% else %}poor{% endif %}" 
+                                             style="width: {{stats.best}}%"></div>
+                                    </div>
+                                    <span>{{stats.best|floatformat:1}}%</span>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted">Попыток: {{stats.attempts}}</small><br>
+                                    <small class="text-muted">
+                                        {% if stats.average >= 80 %}
+                                            <span style="color: #28a745;">Отличный уровень</span>
+                                        {% elif stats.average >= 60 %}
+                                            <span style="color: #47a5c9;">Хороший уровень</span>
+                                        {% elif stats.average >= 40 %}
+                                            <span style="color: #ffc107;">Средний уровень</span>
+                                        {% else %}
+                                            <span style="color: #dc3545;">Требует улучшения</span>
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Выполнение домашних заданий (если доступно) -->
+        {% if homework_stats.total > 0 %}
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="chart-container">
+                    <h4><strong>Выполнение домашних заданий</strong></h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="chart-wrapper">
+                                <canvas id="homeworkChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mt-4">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="stat-card">
+                                            <h3 style="color: #28a745;">{{homework_stats.completed}}</h3>
+                                            <p>Выполнено</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="stat-card">
+                                            <h3 style="color: #dc3545;">{{homework_stats.not_completed}}</h3>
+                                            <p>Не выполнено</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock content %}
+
+{% block last %}
+<!-- JavaScript для датапикера -->
+<script type="text/javascript" src="{% static 'date/moment.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'date/daterangepicker.min.js' %}"></script>
+
+<script>
+// Инициализация датапикера
+$('input[name="tabel-date"]').daterangepicker({
+    "minYear": 2023,
+    "locale": {
+        "format": "YYYY-MM-DD",
+        "separator": " - ",
+        "applyLabel": "Выбрать",
+        "cancelLabel": "Отменить",
+        "fromLabel": "С",
+        "toLabel": "По",
+        "customRangeLabel": "Произвольный период",
+        "weekLabel": "Н",
+        "daysOfWeek": [
+            "Пн",
+            "Вт",
+            "Ср",
+            "Чт",
+            "Пт",
+            "Сб",
+            "Вс"
+        ],
+        "monthNames": [
+            "Январь",
+            "Февраль",
+            "Март",
+            "Апрель",
+            "Май",
+            "Июнь",
+            "Июль",
+            "Август",
+            "Сентябрь",
+            "Октябрь",
+            "Ноябрь",
+            "Декабрь"
+        ],
+        "firstDay": 1
+    },
+    "startDate": "{{start_date}}",
+    "endDate": "{{end_date}}"
+}, function(start, end, label) {
+    console.log('New date range selected: ' + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD') + ' (predefined range: ' + label + ')');
+});
+
+$('input[name="tabel-date"]').on('apply.daterangepicker', function(ev, picker) {
+    $('#period-form').submit();
+});
+
+// Получаем данные из Django
+const chartData = {{chart_data|safe}};
+
+// Конфигурация цветов для диаграмм
+const colors = {
+    primary: '#47a5c9',
+    secondary: '#ed7e4a',
+    success: '#28a745',
+    warning: '#ffc107',
+    danger: '#dc3545',
+    light: '#f8f9fa'
+};
+
+// Диаграмма посещаемости (круговая)
+const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
+new Chart(attendanceCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Присутствовал', 'Не был (с причиной)', 'Не был (без причины)'],
+        datasets: [{
+            data: [
+                chartData.attendance.present,
+                chartData.attendance.absent_with_reason,
+                chartData.attendance.absent_without_reason
+            ],
+            backgroundColor: [colors.success, colors.warning, colors.danger],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Диаграмма распределения оценок (столбчатая)
+const gradesCtx = document.getElementById('gradesChart').getContext('2d');
+const gradeLabels = Object.keys(chartData.grades);
+const gradeValues = Object.values(chartData.grades);
+
+new Chart(gradesCtx, {
+    type: 'bar',
+    data: {
+        labels: gradeLabels,
+        datasets: [{
+            label: 'Количество оценок',
+            data: gradeValues,
+            backgroundColor: colors.primary,
+            borderColor: colors.primary,
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            },
+            x: {
+                title: {
+                    display: true,
+                    text: 'Оценки'
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    }
+});
+
+// График динамики оценок (линейный)
+const timelineCtx = document.getElementById('gradeTimelineChart').getContext('2d');
+new Chart(timelineCtx, {
+    type: 'line',
+    data: {
+        labels: chartData.grade_timeline.map(item => item.date),
+        datasets: [{
+            label: 'Оценка',
+            data: chartData.grade_timeline.map(item => item.grade),
+            borderColor: colors.secondary,
+            backgroundColor: colors.secondary + '20',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 10,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    }
+});
+
+// Диаграмма результатов тестирований по предметам (если доступно)
+{% if quiz_stats.total_attempts > 0 %}
+const quizSubjectsCtx = document.getElementById('quizSubjectsChart').getContext('2d');
+const quizSubjects = Object.keys(chartData.quiz_performance);
+const quizAverages = Object.values(chartData.quiz_performance).map(item => item.average);
+
+new Chart(quizSubjectsCtx, {
+    type: 'bar',
+    data: {
+        labels: quizSubjects,
+        datasets: [{
+            label: 'Средний балл (%)',
+            data: quizAverages,
+            backgroundColor: colors.warning,
+            borderColor: colors.warning,
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                    stepSize: 10,
+                    callback: function(value) {
+                        return value + '%';
+                    }
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.parsed.y.toFixed(1) + '%';
+                    }
+                }
+            }
+        }
+    }
+});
+{% endif %}
+
+// Диаграмма домашних заданий (если доступно)
+{% if homework_stats.total > 0 %}
+const homeworkCtx = document.getElementById('homeworkChart').getContext('2d');
+new Chart(homeworkCtx, {
+    type: 'pie',
+    data: {
+        labels: ['Выполнено', 'Не выполнено'],
+        datasets: [{
+            data: [
+                chartData.homework.completed,
+                chartData.homework.not_completed
+            ],
+            backgroundColor: [colors.success, colors.danger],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+{% endif %}
+
+// Подсветка активной четверти
+document.addEventListener('DOMContentLoaded', function() {
+    // Активация правильного пункта меню
+    {% if is_student %}
+        document.querySelectorAll('#navbarSupportedContent ul li')[3].querySelector('a').classList.add('active');
+    {% elif is_teacher %}
+        document.querySelectorAll('#navbarSupportedContent ul li')[3].querySelector('a').classList.add('active');
+    {% endif %}
+});
+</script>
+{% endblock last %}

@@ -1,0 +1,267 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block content %}
+
+
+<style>
+    .contact-info .singel-info {
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    .contact-info .singel-info:hover {
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .contact-info h6 {
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+    .contact-info p {
+        margin-bottom: 5px;
+    }
+    .contact-heading {
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    .contact-from, .contact-info {
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        height: 100%; /* Растягиваем на всю высоту */
+    }
+    .equal-height-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .equal-height-wrapper > [class*='col-'] {
+        display: flex;
+        flex-direction: column;
+    }
+    @media (max-width: 991px) {
+        .contact-from, .contact-info {
+            margin-bottom: 30px;
+        }
+    }
+
+    .col-md-4{
+        padding-left: 5px !important;
+        padding-right: 5px !important;
+    }
+
+    .col-md-4 p{
+        font-size: 15px;
+    }
+   
+
+</style>
+
+
+<section id="page-banner" class="pt-55 pb-60 bg_cover" data-overlay="8">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-banner-cont">
+                    <h2>Наши контакты</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'index' %}">Домашнаяя страница</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Контакты</li>
+                        </ol>
+                    </nav>
+                </div>  <!-- page banner cont -->
+            </div>
+        </div> <!-- row -->
+    </div> <!-- container -->
+</section>
+    
+    <!--====== PAGE BANNER PART ENDS ======-->
+    
+    <!--====== CONTACT PART START ======-->
+    
+    <section id="contact-page" class="pt-90 pb-120 gray-bg">
+        <div class="container">
+            <div class="row equal-height-wrapper">
+                <div class="col-lg-5">
+                    <div class="contact-from mt-30">
+                        <div class="section-title">
+                            <div class="contact-heading mb-4">
+                                <h4>Свяжитесь с нами</h4>
+                            </div>
+                        </div> <!-- section title -->
+                        <div class="main-form ">
+                            <form id="contact-form" action="{% url 'contact' %}" method="POST" data-toggle="validator">
+                            {% csrf_token %}
+                            <div class="row">
+                            {% for field in form %}
+                                {% if forloop.last %}
+                                    <div class="col-md-12">
+                                        <div class="singel-form form-group">
+                                            {{ field }}
+                                        </div>
+                                        <div class="help-block with-errors">{{ field.errors }}</div>
+                                    </div>
+                                {% else %}
+                                <div class="col-md-6">
+                                    <div class="singel-form form-group">
+                                        {{ field }}
+                                    </div>
+                                    <div id="error{{field.name}}" class="help-block with-errors">{{ field.errors }}</div>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                            <div class="col-md-12">
+                                <div class="singel-form">
+                                <input type="submit" class="main-btn" value="Отправить">
+
+                                </div> <!-- singel form -->
+                            </div>
+                            </div>
+                            
+                        </form>
+                        {% if messages %}
+                            {% for message in messages %}
+                                {% if message.tags == 'success' %}
+                                    <div class="custom-alert success-message" id="Message">
+                                        <p>{{message}}</p>
+                                    </div>
+                                {% elif message.tags == 'error' %}
+                                    <div class="custom-alert failure-message" id="Message">
+                                        <p>{{message}}</p>
+                                    </div>
+                                {% endif %}
+                            
+                            {% endfor %}
+                        {% endif %}
+                        </div> <!-- main form -->
+                    </div> <!--  contact from -->
+                </div>
+                <div class="col-lg-7">
+                    <div class="contact-info mt-30">
+                        <div class="contact-heading mb-4">
+                            <h4>Контактная информация</h4>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="singel-info mb-4">
+                                    <h6><i class="fa fa-phone mr-2"></i>Телефон</h6>
+                                    <p><a href="tel:+77052544466">+7 705 254 44 66</a></p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="singel-info mb-4">
+                                    <h6><i class="fa fa-instagram mr-2"></i>Instagram</h6>
+                                    <p><a href="https://www.instagram.com/school_senim" target="_blank">school_senim</a></p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="singel-info mb-4">
+                                    <h6><i class="fa fa-instagram mr-2"></i>Instagram</h6>
+                                    <p><a href="https://www.instagram.com/senim_education_almaty" target="_blank">senim_education_almaty</a></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="contact-heading mb-4 mt-4">
+                            <h4>Наши адреса</h4>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="singel-info mb-4">
+                                    <h6><i class="fa fa-map-marker mr-2"></i>Астана</h6>
+                                    <p>Астана, Ақмешіт 9/2</p>
+                                    <a href="https://go.2gis.com/g0d7k" target="_blank" class="text-primary">Открыть на карте</a>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="singel-info mb-4">
+                                    <h6><i class="fa fa-map-marker mr-2"></i>Астана</h6>
+                                    <p>Бейбітшілік 18, 402 офис</p>
+                                    <a href="https://go.2gis.com/j42b7" target="_blank" class="text-primary">Открыть на карте</a>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="singel-info mb-4">
+                                    <h6><i class="fa fa-map-marker mr-2"></i>Алматы</h6>
+                                    <p>Сатпаева 30/2, 6 офис</p>
+                                    <a href="https://go.2gis.com/lvgm4" target="_blank" class="text-primary">Открыть на карте</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- row -->
+        </div> <!-- container -->
+    </section>
+    
+<script>
+    const form = document.getElementById('contact-form');
+
+        // Function to display error message for empty fields
+        function displayEmptyFieldError(inputElement, errorElement) {
+            if (inputElement.value.trim() === '') {
+                errorElement.textContent = 'Это поле необходимо заполнить.';
+                errorElement.style.color = 'red'
+                errorElement.style.fontSize = '13px'
+                errorElement.style.marginColor = '2px'
+                errorElement.style.marginTop = '5px'
+                return true;
+            } else {
+                errorElement.textContent = '';
+                return false;
+            }
+        }
+
+        // Event listener for form submission
+        form.addEventListener('submit', (event) => {
+            event.preventDefault(); // Prevent default form submission
+
+            // Check each field and display error messages
+            const nameInput = document.getElementById('idname');
+            const nameError = document.getElementById('errorname');
+            const emailInput = document.getElementById('idemail');
+            const emailError = document.getElementById('erroremail');
+            const SubjectInput = document.getElementById('idsubject');
+            const SubjectError = document.getElementById('errorsubject');
+            const PhoneInput = document.getElementById('idphone');
+            const PhoneError = document.getElementById('errorphone');
+            let hasErrors = false;
+            if (displayEmptyFieldError(nameInput, nameError)) {
+                hasErrors = true;
+            }
+
+            if (displayEmptyFieldError(emailInput, emailError)) {
+                hasErrors = true;
+            }
+            if (displayEmptyFieldError(SubjectInput, SubjectError)) {
+                hasErrors = true;
+            }
+            if (displayEmptyFieldError(PhoneInput, PhoneError)) {
+                hasErrors = true;
+            }
+
+            // Add more fields validation as needed
+
+            // If there are no errors, submit the form
+            if (!hasErrors) {
+                form.submit();
+            }
+        });
+</script>
+{% endblock content %}
+{% block last %}
+<script>
+    $(document).ready(function() {
+        $('#Message').css('visibility', 'visible').css('opacity', '1');
+        setTimeout(function() {
+            $('#Message').css('visibility', 'hidden').css('opacity', '0');
+        }, 5000); // Hide the message after 3 seconds (adjust as needed)
+    });
+
+    document.querySelectorAll('#navbarSupportedContent ul li')[2].querySelector('a').classList.add('active');
+</script>
+{% endblock last %}

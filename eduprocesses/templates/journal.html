@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<section id="page-banner" class="pt-55 pb-60 bg_cover" data-overlay="8">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-banner-cont">
+                    <h2>Журнал</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'index' %}">Домашняя страница</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Журнал</li>
+                        </ol>
+                    </nav>
+                </div>  <!-- page banner cont -->
+            </div>
+        </div> <!-- row -->
+    </div> <!-- container -->
+</section>
+<!--====== PAGE BANNER PART ENDS ======-->
+<section class="pt-30 pb-120 gray-bg">
+	<div class="container mt-5">
+		<div class="row">
+			{% if user|is_teacher %}
+			<div class="col-lg-12 mb-3" style="background-color: white; padding: 30px;">
+				<div class="col-md-12">
+					<h2 class="super-centered"><strong>Мои группы</strong></h2>
+				</div>
+				<br>
+				<div class="table-responsive text-center">
+					<table class="table table-bordered"  style="overflow-x: auto;">
+						<thead>
+							<tr>
+								<th>№</th>
+								<th>Группа</th>
+								<th>Тип</th>
+								<th>Cтуденты</th>
+								<th class="hide-column">Предмет</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for my_group in my_groups %}
+								<tr>
+									<td>{{forloop.counter}}</td>
+									<td>
+										<a href="{% url 'journal_single' my_group.id %}">{{my_group}}</a>
+									</td>
+									<td>{{my_group.group_type}}</td>
+									<td>{{my_group.students.all|length}}</td>
+									<td class="hide-column">{{my_group.subject}}</td>
+								</tr>
+							{% endfor %}
+						</tbody>
+				  	</table>
+				</div>
+			</div>
+			<div class="col-lg-12 mb-3" style="background-color: white; padding: 30px;">
+				<div class="col-md-12">
+					<h2 class="super-centered"><strong>Замененные уроки</strong></h2>
+				</div>
+				<br>
+				{% if substitute_lessons %}
+					<div class="table-responsive text-center">
+						<table class="table table-bordered" style="overflow-x: auto;">
+							<thead>
+							  <tr>
+								  <th>Урок</th>
+								  <th>Группа</th>
+								  <th class="hide-column">Дата</th>
+								  <th>Замена</th>
+							  </tr>
+							</thead>
+							<tbody>
+								{% for lesson in substitute_lessons %}
+									<tr>
+										<td>
+											<a href="{% url 'lesson_single' lesson.id %}">{{lesson}}</a>
+											</td>
+										<td>{{lesson.study_group}}</td>
+										<td class="hide-column">{{lesson.date}}</td>
+										<td>
+											{{lesson.study_group.teacher.first_name}} 
+											{{lesson.study_group.teacher.last_name}}
+										</td>
+									</tr>
+								{% endfor %}
+							</tbody>
+						  </table>
+					</div>
+				{% else %}
+					<p class="text-center">Вы не заменяете уроков других учителей</p>
+				{% endif %}
+			</div>
+			{% endif %}
+		</div>
+	</div>
+</section>
+<script>
+	document.querySelectorAll('#navbarSupportedContent ul li')[3].querySelector('a').classList.add('active');
+</script>
+<style>
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    @media (max-width: 768px) {
+        .hide-column {
+            display: none;
+        }
+
+        table.table th, table.table td {
+            font-size: 0.9rem;
+            padding: 0.5rem;
+        }
+    }
+</style>
+{% endblock content %}

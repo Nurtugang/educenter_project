@@ -1,0 +1,507 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+{% load custom_tags %}
+
+
+{% load static %}
+{% block head %}
+<link rel="stylesheet" type="text/css" href="{% static 'date/daterangepicker.css' %}" />
+{% endblock head %}
+{% block content %}
+
+<section id="page-banner" class="pt-55 pb-60 bg_cover" data-overlay="8">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-banner-cont">
+                    <h2>Табель</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'index' %}">Домашняя страница</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Табель</li>
+                        </ol>
+                    </nav>
+                </div>  <!-- page banner cont -->
+            </div>
+        </div> <!-- row -->
+    </div> <!-- container -->
+</section>
+<!--====== PAGE BANNER PART ENDS ======-->
+
+<section class="pt-30 pb-120 gray-bg">
+	<div class="container mt-5">
+		<div class="row">
+			<div class="col-lg-12">
+				<form id = "tabel-date-form" method="post" action="{% url 'tabel' %}">
+					{% csrf_token %}
+					<div class="row">
+						<div class="col-md-12" style="background-color: white; padding-left: 30px; padding-right: 30px; padding-top: 30px;">
+							<div class="d-flex justify-content-between align-items-center">
+    							<input class="form-control" style="height: 52px" type="text" name="tabel-date" >
+								<button style="height:100%; border-radius: 0px" type="submit"  class="form-control main-btn quarter-button {% if selected_period == 'week' %}selected{% endif %}" name="tabel-date" value="week">За эту неделю</button>
+								<button style="height:100%; border-radius: 0px" type="submit"  class="form-control main-btn quarter-button {% if selected_period == 'month' %}selected{% endif %}" name="tabel-date" value="month">За этот месяц</button>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-12 mb-3" style="background-color: white; padding: 30px;">
+							<div class="d-flex justify-content-between">
+								<button style="height:100%; border-radius: 0px" type="submit"  class="form-control main-btn quarter-button {% if selected_period == '1' %}selected{% endif %}" name="tabel-quarter" value="1">1 четверть</button>
+								<button style="height:100%; border-radius: 0px" type="submit" class="form-control main-btn quarter-button {% if selected_period == '2' %}selected{% endif %}" name="tabel-quarter" value="2">2 четверть</button>
+								<button style="height:100%; border-radius: 0px" type="submit" class="form-control main-btn quarter-button {% if selected_period == '3' %}selected{% endif %}" name="tabel-quarter" value="3">3 четверть</button>
+								<button style="height:100%; border-radius: 0px" type="submit" class="form-control main-btn quarter-button {% if selected_period == '4' %}selected{% endif %}" name="tabel-quarter" value="4">4 четверть</button>
+							</div>
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="col-lg-12 mb-3" style="background-color: white; padding: 30px;">
+				<h1>Краткая сводная</h1>
+				<div class="row">
+			        <div class="col-md-12">
+			            <button id="button-tabel-short" class="main-btn">Проведенные уроки</button>
+			            <button id="button-tabel-short-all" class="main-btn">Уроки назначенные учителю</button>
+			        </div>
+			    </div>
+				<br>
+				<!-- краткая сводная по проведенным -->
+				{% if is_teacher %}
+				<div id="tabel-short" class="table-container" style="overflow-x: auto;">
+					<table class="table table-bordered">
+					  <thead>
+					      <tr>
+					      	<td></td>
+					      	{% for group_type in complete_payments_per_group_type %}
+					        <td class="text-center">{{group_type}}</td>
+					        {% endfor %}
+					        <td class="text-center">Сумма</td>
+					      </tr>
+					  </thead>
+					  <tbody>
+					  	<tr>
+					    	<td class="text-center">Кол-во уроков</td>
+					      	{% for lesson in complete_lessons_per_group_type.values %}
+					        <td class="text-center">{{lesson}}</td>
+					        {% endfor %}
+					        <td class="text-center">{{completed_lessons.count}}</td>
+					    </tr>
+					    <tr>
+					    	<td class="text-center">Кол-во часов</td>
+					      	{% for lesson in complete_hours_per_group_type.values %}
+					        <td class="text-center">{{lesson}}</td>
+					        {% endfor %}
+					        <td class="text-center">{{completed_lessons_total_hours}}</td>
+					    </tr>
+					    <tr>
+					    	<td class="text-center">Выплата</td>
+					      	{% for payment in complete_payments_per_group_type.values %}
+					        <td class="text-center">{{payment}}</td>
+					        {% endfor %}
+					        <td class="text-center">{{completed_lessons_total_price}}</td>
+					    </tr>
+					  </tbody>
+					</table>
+				</div>
+				<div id="tabel-short-all" class="table-container" style="overflow-x: auto; display: none;">
+					<table class="table table-bordered">
+					  <thead>
+					      <tr>
+					      	<td></td>
+					      	{% for group_type in all_payments_per_group_type %}
+					        <td class="text-center">{{group_type}}</td>
+					        {% endfor %}
+					        <td class="text-center">Сумма</td>
+					      </tr>
+					  </thead>
+					  <tbody>
+					  	<tr>
+					    	<td class="text-center">Кол-во уроков</td>
+					      	{% for lesson in all_lessons_per_group_type.values %}
+					        <td class="text-center">{{lesson}}</td>
+					        {% endfor %}
+					        <td class="text-center">{{all_lessons.count}}</td>
+					    </tr>
+					    <tr>
+					    	<td class="text-center">Кол-во часов</td>
+					      	{% for lesson in all_hours_per_group_type.values %}
+					        <td class="text-center">{{lesson}}</td>
+					        {% endfor %}
+					        <td class="text-center">{{all_lessons_total_hours}}</td>
+
+					    </tr>
+					    <tr>
+					    	<td class="text-center">Выплата</td>
+					      	{% for payment in all_payments_per_group_type.values %}
+					        <td class="text-center">{{payment}}</td>
+					        {% endfor %}
+					        <td class="text-center">{{all_lessons_total_price}}</td>
+
+					    </tr>
+					  </tbody>
+					</table>
+				</div>
+				{% elif is_admin %}
+				<div id="tabel-short" class="table-container" style="overflow-x: auto;">
+					<table class="table table-bordered">
+						<thead>
+							<tr>
+								<th>Учитель/Часы по группам</th>
+								{% for group_type in group_types %}
+									<th class="text-center">
+										{{group_type.name}}
+									</th>
+								{% endfor %}
+							</tr>
+						</thead>
+						<tbody>
+							{% for teacher in teachers %}
+								<tr>
+									<td class="text-center">{{teacher.first_name}} {{teacher.last_name}}</td>
+									{% for group_type in group_types %}
+										<td class="text-center">
+											{% get_hours_sum teacher group_type choosen_range %}
+										</td>
+									{% endfor %}
+								</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+					
+				<div id="tabel-short-all" class="table-container" style="overflow-x: auto; display: none;">
+					<table class="table table-bordered">
+						<thead>
+							<tr>
+								<th>Учитель/Часы по группам</th>
+								{% for group_type in group_types %}
+									<th class="text-center">
+										{{group_type.name}}
+									</th>
+								{% endfor %}
+							</tr>
+						</thead>
+						<tbody>
+							{% for teacher in teachers %}
+								<tr>
+									<td class="text-center">{{teacher.first_name}} {{teacher.last_name}}</td>
+									{% for group_type in group_types %}
+										<td class="text-center">
+											{% get_hours_sum_all teacher group_type choosen_range %}
+										</td>
+									{% endfor %}
+								</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+				{% endif %}
+			</div>
+
+			<div class="col-lg-12 mb-3" style="background-color: white; padding: 30px;">
+				<h1>Табель</h1>
+				<div class="row">
+			        <div class="col-md-12">
+			            <button id="button-tabel-teacher" class="main-btn">Проведенные уроки</button>
+			            <button id="button-tabel-teacher-all" class="main-btn">Все уроки</button>
+			        </div>
+			    </div>
+				<br>
+				<!-- проведенные уроки -->
+				<div id="tabel-teacher" class="table-container" style="overflow-x: auto; ">
+					<table class="table table-bordered">
+					  <thead>
+					      <tr>
+					          <th class="text-center">№</th>
+					          <th class="text-center">Урок</th>
+					          <th class="text-center">Учитель</th>
+					          <th class="text-center">Группа</th>
+					          <th class="text-center">Тип группы</th>
+					          <th class="text-center">Кол-во часов</th>
+					          <th class="text-center">Оплата</th>
+					      </tr>
+					  </thead>
+					  <tbody>
+					    {% for completed_lesson in completed_lessons %}
+						    <tr>
+						      <td class="text-center">{{forloop.counter}}</td>
+						      <td class="text-center">
+						      	<a href="{% url 'lesson_single' completed_lesson.id %}">
+						      		{{completed_lesson.subject.name}} {{completed_lesson.date}}
+						      	</a>
+						      </td>
+						      <td class="text-center">{{completed_lesson.study_group.teacher}}</td>
+						      <td class="text-center">{{completed_lesson.study_group.name}}</td>
+						      <td class="text-center">{{completed_lesson.study_group.group_type.name}}</td>
+						      <td class="text-center">{{completed_lesson.hours}}</td>
+						      <td class="text-center">{{completed_lesson.study_group.group_type.payment|multiply:completed_lesson.hours}}</td>
+						    </tr>
+					    {% endfor %}
+
+					    <tr>
+					    	<td class="text-center">Сумма</td>
+					    	<td></td>
+					    	<td></td>
+					    	<td></td>
+					    	<td></td>
+					    	<td class="text-center">{{completed_lessons_total_hours|default:' '}}</td>
+					    	<td class="text-center">{{completed_lessons_total_price|default:' '}}</td>
+					    </tr>
+					  </tbody>
+					</table>
+				</div>
+				<!-- все уроки -->
+				<div id="tabel-teacher-all" class="table-container" style="overflow-x: auto; display: none;">
+					<table class="table table-bordered">
+					  <thead>
+					      <tr>
+					          <th class="text-center">№</th>
+					          <th class="text-center">Урок</th>
+					          <th class="text-center">Группа</th>
+					          <th class="text-center">Тип группы</th>
+					          <th class="text-center">Статус</th>
+					          <th class="text-center">Кол-во часов</th>
+					          <th class="text-center">Ожиданная оплата</th>
+					      </tr>
+					  </thead>
+					  <tbody>
+					    {% for all_lesson in all_lessons %}
+					    <tr>
+					      <td class="text-center">{{forloop.counter}}</td>
+					      <td class="text-center">
+					      	<a href="{% url 'lesson_single' all_lesson.id %}">
+					      		{{all_lesson.subject.name}} {{all_lesson.date}}
+					      	</a>
+					      </td>
+					      <td class="text-center">{{all_lesson.study_group.name}}</td>
+					      <td class="text-center">{{all_lesson.study_group.group_type.name}}</td>
+					      <td class="text-center">
+					      	{% if all_lesson.status == 'P' and all_lesson.substitute_teacher is not None %}
+					      		Проведен замен. учителем
+					      	{% elif all_lesson.status == 'P' and all_lesson.substitute_teacher is None %}
+					      		Проведен
+					      	{% elif all_lesson.status == 'O' %}
+					      		Отменен
+					      	{% elif all_lesson.status == 'NP' %}
+					      		Не проведен
+					      	{% elif all_lesson.status == 'Z' %}
+					      		Заменён учитель
+					      	{% endif %}
+					      </td>
+					      <td class="text-center">{{all_lesson.hours}}</td>
+					      <td class="text-center">
+					      	{{all_lesson.study_group.group_type.payment|multiply:all_lesson.hours}}
+					      </td>
+					    </tr>
+					    {% endfor %}
+					    <tr>
+					    	<td class="text-center">Сумма</td>
+					    	<td></td>
+					    	<td></td>
+					    	<td></td>
+					    	<td></td>
+					    	<td class="text-center">{{all_lessons_total_hours|default:' '}}</td>
+					    	<td class="text-center">{{all_lessons_total_price|default:' '}}</td>
+					    </tr>
+					  </tbody>
+					</table>
+				</div>
+			</div>
+			
+			<div class="content-section col-lg-12" style="background-color: white; padding: 30px;">
+				<h1>Табель учителя в роли замены</h1>
+				<div class="row">
+			        <div class="col-md-12">
+			            <button id="button-tabel-change" class="main-btn">Проведенные уроки</button>
+			            <button id="button-tabel-change-all" class="main-btn">Все уроки</button>
+			        </div>
+			    </div>
+				<br>
+				<!-- проведенные уроки -->
+				<div id="tabel-change" class="table-container" style="overflow-x: auto;">
+					<table class="table table-bordered"s>
+					  <thead>
+					      <tr>
+					          <th class="text-center">№</th>
+					          <th class="text-center">Урок</th>
+					          <th class="text-center">Группа</th>
+					          <th class="text-center">Тип группы</th>
+							  <th class="text-center">Кол-во часов</th>
+					          <th class="text-center">Оплата</th>
+					      </tr>
+					  </thead>
+					  <tbody>
+					    {% for completed_changed_lesson in completed_changed_lessons %}
+					    <tr>
+					      <td class="text-center">{{forloop.counter}}</td>
+					      <td class="text-center">
+					      	<a href="{% url 'lesson_single' completed_changed_lesson.id %}">
+					      		{{completed_changed_lesson.subject.name}} {{completed_changed_lesson.date}}
+					      	</a>
+					      </td>
+					      <td class="text-center">{{completed_changed_lesson.study_group.name}}</td>
+					      <td class="text-center">{{completed_changed_lesson.study_group.group_type.name}}</td>
+					      <td class="text-center">{{completed_changed_lesson.hours}}</td>
+					      <td class="text-center">{{completed_changed_lesson.study_group.group_type.payment|multiply:completed_changed_lesson.hours}}</td>
+					    </tr>
+					    {% endfor %}
+					    <tr>
+					    	<td class="text-center">Сумма</td>
+					    	<td></td>
+					    	<td></td>
+					    	<td></td>
+					    	<td class="text-center">{{completed_changed_lessons_total_hours|default:' '}}</td>
+					    	<td class="text-center">{{completed_changed_lessons_total_price|default:' '}}</td>
+					    </tr>
+					  </tbody>
+					</table>
+				</div>
+				<!-- все уроки -->
+				<div id="tabel-change-all" class="table-container" style="overflow-x: auto; display: none;">
+					<table class="table table-bordered">
+					  <thead>
+					      <tr>
+					          <th class="text-center">№</th>
+					          <th class="text-center">Урок</th>
+					          <th class="text-center">Группа</th>
+					          <th class="text-center">Тип группы</th>
+					          <th class="text-center">Статус</th>
+					          <th class="text-center">Кол-во часов</th>
+					          <th class="text-center">Ожиданная оплата</th>
+					      </tr>
+					  </thead>
+					  <tbody>
+					    {% for all_changed_lesson in all_changed_lessons %}
+					    <tr>
+					      <td class="text-center">{{forloop.counter}}</td>
+					      <td class="text-center">
+					      	<a href="{% url 'lesson_single' all_changed_lesson.id %}">
+					      		{{all_changed_lesson.subject.name}} {{all_changed_lesson.date}}
+					      	</a>
+					      </td>
+					      <td class="text-center">{{all_changed_lesson.study_group.name}}</td>
+					      <td class="text-center">{{all_changed_lesson.study_group.group_type.name}}</td>
+					      <td class="text-center">
+					      	{% if all_changed_lesson.status == 'P' %}
+					      		Проведен
+					      	{% elif all_changed_lesson.status == 'O' %}
+					      		Отменен
+					      	{% elif all_changed_lesson.status == 'Z' %}
+					      		Не проведен
+					      	{% endif %}
+					      </td>
+					      <td class="text-center">{{all_changed_lesson.hours}}</td>
+					      <td class="text-center">
+					      		{{all_changed_lesson.study_group.group_type.payment|multiply:all_changed_lesson.hours}}
+					      </td>
+					    </tr>
+					    {% endfor %}
+					    <tr>
+					    	<td class="text-center">Сумма</td>
+					    	<td></td>
+					    	<td></td>
+					    	<td></td>
+					    	<td></td>
+					    	<td class="text-center">{{all_changed_lessons_total_hours|default:' '}}</td>
+					    	<td class="text-center">{{all_changed_lessons_total_price|default:' '}}</td>
+					    </tr>
+					  </tbody>
+					</table>
+				</div>
+
+		</div>	
+	</div>
+</section>
+{% endblock content %}
+{% block last %}
+<script>
+    $(document).ready(function() {
+        $('#button-tabel-teacher').on('click', function() {
+            $('#tabel-teacher-all').hide();
+            $('#tabel-teacher').show();
+        });
+
+        $('#button-tabel-teacher-all').on('click', function() {
+            $('#tabel-teacher').hide();
+            $('#tabel-teacher-all').show();
+        });
+
+        $('#button-tabel-change').on('click', function() {
+            $('#tabel-change-all').hide();
+            $('#tabel-change').show();
+        });
+
+        $('#button-tabel-change-all').on('click', function() {
+            $('#tabel-change').hide();
+            $('#tabel-change-all').show();
+        });
+
+        $('#button-tabel-short').on('click', function() {
+            $('#tabel-short-all').hide();
+            $('#tabel-short').show();
+        });
+
+        $('#button-tabel-short-all').on('click', function() {
+            $('#tabel-short').hide();
+            $('#tabel-short-all').show();
+        });
+    });
+</script>
+
+
+<script type="text/javascript" src="{% static 'date/moment.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'date/daterangepicker.min.js' %}"></script>
+<script>
+  $('input[name="tabel-date"]').daterangepicker({
+    "minYear": 2023,
+    "locale": {
+        "format": "YYYY-MM-DD",
+        "separator": " - ",
+        "applyLabel": "Выбрать",
+        "cancelLabel": "Отменить",
+        "fromLabel": "From",
+        "toLabel": "To",
+        "customRangeLabel": "Custom",
+        "weekLabel": "W",
+        "daysOfWeek": [
+            "Пн",
+            "Вт",
+            "Ср",
+            "Чт",
+            "Пт",
+            "Сб",
+            "Вс"
+        ],
+        "monthNames": [
+            "Январь",
+            "Февраль",
+            "Март",
+            "Апрель",
+            "Май",
+            "Июнь",
+            "Июль",
+            "Август",
+            "Сентябрь",
+            "Октябрь",
+            "Ноябрь",
+            "Декабрь"
+        ],
+        "firstDay": 1
+    },
+    "startDate": "{{start_date}}",
+    "endDate": "{{end_date}}"
+}, function(start, end, label) {
+  console.log('New date range selected: ' + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD') + ' (predefined range: ' + label + ')');
+});
+
+$('input[name="tabel-date"]').on('apply.daterangepicker', function(ev, picker) {
+  $('#tabel-date-form').submit();
+});
+</script>
+<script>
+	{% if is_teacher %}		
+	document.querySelectorAll('#navbarSupportedContent ul li')[4].querySelector('a').classList.add('active');
+	{% elif is_admin %}
+	document.querySelectorAll('#navbarSupportedContent ul li')[3].querySelector('a').classList.add('active');
+	{% endif %}
+</script>
+{% endblock last %}

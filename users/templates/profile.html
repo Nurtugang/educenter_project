@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<!--====== PAGE BANNER PART START ======-->
+
+<section id="page-banner" class="pt-105 pb-130 bg_cover" data-overlay="8">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-banner-cont">
+                    <h2>Профиль</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'index' %}">Домашняя страница</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Ваш профиль</li>
+                        </ol>
+                    </nav>
+                </div> <!-- page banner cont -->
+            </div>
+        </div> <!-- row -->
+    </div> <!-- container -->
+</section>
+
+    <!--====== PAGE BANNER PART ENDS ======-->
+
+    <!--====== TEACHERS PART START ======-->
+    
+    <section id="teachers-singel" class="pt-70 pb-120 gray-bg">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-4 col-md-8">
+                    <div class="teachers-left mt-50">
+                        <div class="hero">
+                            <img src="{{ user.image.url }}" alt="Teachers">
+                        </div>
+                        <div class="name">
+                            <h6>{{user.first_name}} {{user.last_name}}</h6>
+                            {% for g in user.groups.all %}
+                            <span>{{g.name}}</span>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="description">
+                            <p>{{user.bio}}</p>
+                        </div>
+                    </div> <!-- teachers left -->
+                </div>
+                <div class="col-lg-8">
+                    <div class="teachers-right mt-50">
+                        <ul class="nav nav-justified" id="myTab" role="tablist">
+                            <li class="nav-item">
+                                <a class="active" id="dashboard-tab" data-toggle="tab" href="#dashboard" role="tab" aria-controls="dashboard" aria-selected="true">Основное</a>
+                            </li>
+                            <li class="nav-item">
+                                <a id="courses-tab" data-toggle="tab" href="#courses" role="tab" aria-controls="courses" aria-selected="false">Мои курсы</a>
+                            </li>
+                            <li class="nav-item">
+                                <a id="reviews-tab" data-toggle="tab" href="#reviews" role="tab" aria-controls="reviews" aria-selected="false">Доп. информация</a>
+                            </li>
+                            <li class="nav-item">
+                                <a id="password-tab" data-toggle="tab" href="#password" role="tab" aria-controls="password" aria-selected="false">Смена пароля</a>
+                            </li>
+                        </ul> <!-- nav -->
+                        <div class="tab-content" id="myTabContent">
+                            <div class="tab-pane fade show active" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
+                                <div class="dashboard-cont">
+                                    <div class="singel-dashboard pt-40">
+                                        <h5>ФИО</h5>
+                                        <p>{{user.first_name}} {{user.last_name}} {{user.middle_name}}</p>
+                                    </div> <!-- singel dashboard -->
+                                    <div class="singel-dashboard pt-40">
+                                        <h5>Пол</h5>
+                                        <p>
+                                          {% if user.gender == 'M' %}
+                                          Мужской
+                                          {% elif user.gender == 'W' %}
+                                          Женский
+                                          {% endif %}
+                                        </p>
+                                    </div> <!-- singel dashboard -->
+                                    <div class="singel-dashboard pt-40">
+                                        <h5>Электронная почта</h5>
+                                        <p>{{user.email}}</p>
+                                    </div> <!-- singel dashboard -->
+                                    <div class="singel-dashboard pt-40">
+                                        <h5>Номер телефона</h5>
+                                        <p>{{user.phone}}</p>
+                                    </div> <!-- singel dashboard -->
+                                    <div class="singel-dashboard pt-40">
+                                        <h5>День рождения</h5>
+                                        <p>{{user.birth_date}}</p>
+                                    </div> <!-- singel dashboard -->
+                                    <div class="singel-dashboard pt-40">
+                                        {% for g in user.groups.all %}
+                                            {% if g.name == 'Студент' %}
+                                                <h5>Класс</h5>
+                                                <p>{{user.grade}} класс </p>
+                                            {% endif %}
+                                    {% endfor %}
+                                    </div>
+                                    
+                                </div> <!-- dashboard cont -->
+                            </div>
+                            <div class="tab-pane fade" id="courses" role="tabpanel" aria-labelledby="courses-tab">
+                                <div class="courses-cont pt-20">
+                                    <div class="row">
+                                        {% for course in my_courses %}
+                                        <div class="col-md-6">
+                                            <div class="singel-course mt-30">
+                                                <div class="thum">
+                                                    <div class="image">
+                                                        <img src="{{course.image.url}}" alt="Course">
+                                                    </div>
+                                                </div>
+                                                <div class="cont border">
+                                                    <a href="{% url 'videolessons' course.id %}"><h4>{{course.name}}</h4></a>
+                                                    <div class="course-teacher">
+                                                        <div class="thum">
+                                                            <a href="#"><img src="{{course.teacher.image.url}}" alt="teacher"></a>
+                                                        </div>
+                                                        <div class="name">
+                                                            <a href="#"><h6>{{course.teacher.first_name}} {{course.teacher.last_name}}</h6></a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div> <!-- singel course -->
+                                        </div>
+                                        {% endfor %}
+                                    </div> <!-- row -->
+                                </div> <!-- courses cont -->
+                            </div>
+                            <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+                              <div class="dashboard-cont">
+                                    <div class="singel-dashboard pt-40">
+                                        
+                                    </div> <!-- singel dashboard -->
+                                </div> <!-- dashboard cont -->
+                            </div>
+                            <div class="tab-pane fade" id="password" role="tabpanel" aria-labelledby="password-tab">
+                                <div class="dashboard-cont">
+                                    <div class="singel-dashboard pt-40">
+                                        <h5>Смена пароля</h5>
+                                        <form method="post" action="{% url 'change_password' %}">
+                                            {% csrf_token %}
+                                            <div class="form-group mt-3">
+                                                <label for="old_password">Текущий пароль</label>
+                                                <input type="password" class="form-control" name="old_password" id="old_password" placeholder="Введите текущий пароль" required>
+                                            </div>
+                                            <div class="form-group mt-3">
+                                                <label for="new_password1">Новый пароль</label>
+                                                <input type="password" class="form-control" name="new_password1" id="new_password1" placeholder="Введите новый пароль" required>
+                                            </div>
+                                            <div class="form-group mt-3">
+                                                <label for="new_password2">Подтвердите новый пароль</label>
+                                                <input type="password" class="form-control" name="new_password2" id="new_password2" placeholder="Подтвердите новый пароль" required>
+                                            </div>
+                                            <div class="form-group mt-4">
+                                                <button type="submit" class="main-btn">Изменить пароль</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div> <!-- tab content -->
+                    </div> <!-- teachers right -->
+                </div>
+            </div> <!-- row -->
+        </div> <!-- container -->
+    </section>
+{% endblock content %}

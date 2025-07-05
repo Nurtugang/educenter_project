@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+    .btn-classic {
+        cursor: pointer;
+        font-family: 'Patrick Hand', cursive;
+        font-size: 18px;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        box-shadow: 0 4px #222;
+        margin-right: 10px;
+    }
+    .btn-classic:hover {
+            background-color: #f2a07a;
+            box-shadow: 0 6px #222;
+            position: relative;
+            top: -2px;
+    }
+    .btn-green:hover {
+            background-color: limegreen;
+            box-shadow: 0 6px #222;
+            position: relative;
+            top: -2px;
+    }
+    h2{
+        font-family: 'Patrick Hand', cursive;
+    }
+
+    .custom-alert {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px;
+    border-radius: 5px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 9999;
+}
+
+.success-message {
+    background-color: limegreen; /* Yellow color for success message */
+    color: #395471; /* Blue color for success message */
+}
+
+.failure-message {
+    background-color: #e74c3c; /* Red color for failure message */
+    color: white; /* White color for failure message text */
+}
+</style>
+
+<section id="page-banner" class="pt-30 pb-30 bg_cover" data-overlay="8">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-banner-cont">
+                    <h3>Senim Store</h3>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'index' %}">Домашняя страница</a></li>
+                            <li class="breadcrumb-item active" aria-current="page"><a style="color:#ed7e4a" href="{% url 'product_list' %}">Каталог товаров</a></li>
+                        </ol>
+                    </nav>
+                </div>  <!-- page banner cont -->
+            </div>
+        </div> <!-- row -->
+    </div> <!-- container -->
+</section>
+
+<div class="container mt-5">
+    <h2 class="justify-content-center text-center mb-4">Наши продукты</h2>
+    
+    {% if user.is_authenticated %}
+    <div class="text-right mb-3">
+        <h5>Ваш баланс: <span id="user-balance">{{ user.coins.balance }}</span> <span style="color: #FF5733;">Senim</span><span style="color: #3498db;">Coin</span></h5>
+    </div>
+    {% endif %}
+
+    {% if products %}
+    <div class="row">
+        {% for product in products %}
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text">{{ product.description }}</p>
+                    <p class="card-text">Цена: {{ product.price }} <span style="color: #FF5733;">Senim</span><span style="color: #3498db;">Coin</span></p>
+                    {% if user.is_authenticated %}
+                        <button class="btn btn-classic btn-primary btn-buy" data-product-id="{{ product.id }}">Добавить в корзину</button>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="row mt-30">
+        <div class="col-lg-12 text-center">
+            <div class="alert alert-warning" role="alert">
+                <h4 class="alert-heading">На данный момент в Senim Store товары отсутствуют!</h4>
+            </div>
+        </div>
+    </div> <!-- row -->
+    {% endif %}
+</div>
+
+{% if user.is_authenticated %}
+<!-- Кнопка корзины -->
+<div id="cart-button" class="fixed-top">
+    <button class="btn btn-primary btn-classic " data-toggle="modal" data-target="#cartModal">
+        <i class="fa fa-shopping-cart"></i>
+        <span class="badge badge-light" id="cart-count">0</span>
+    </button>
+</div>
+{% endif %}
+
+<!-- Модальное окно корзины -->
+<div class="modal fade" id="cartModal" tabindex="-1" role="dialog" aria-labelledby="cartModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cartModalLabel">Ваша корзина:</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="cart-items">
+                    <!-- AJAX-запросы будут загружать содержимое корзины сюда -->
+                </div>
+                <hr>
+                <div class="total d-flex justify-content-between">
+                    <h5>Итого:</h5>
+                    <h5 id="cart-total">0 <span style="color: #FF5733;">Senim</span><span style="color: #3498db;">Coin</span></h5>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-classic btn-secondary" data-dismiss="modal">Продолжить покупки</button>
+                <button type="button" class="btn btn-classic btn-green btn-primary" id="place-order">Оформить заказ</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="order-message" class="custom-alert failure-message"></div>
+<div id="order-success-message" class="custom-alert success-message"></div>
+
+{% endblock content %}
+
+{% block last %}
+    <style>
+        #cart-button {
+            position: fixed;
+            top: 40px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .cart-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 10px;
+            padding-top: 10px; /* Отступ сверху */
+            min-height: 60px; /* Установка минимальной высоты для выравнивания всех элементов */
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .product-info {
+            margin-left: 10px;
+        }
+
+        .quantity span {
+            width: 30px;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .cart-item {
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 10px;
+            padding-top: 10px; /* Добавим отступ сверху */
+        }
+
+        .quantity {
+            width: 40px;
+            text-align: center;
+            display: inline-block;
+            font-size: 14px;  /* Шрифт такой же, как и у цены */
+            line-height: 1.5;  /* Для вертикального выравнивания */
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+            color: #fff;
+            font-size: 16px;
+            padding: 5px 10px;
+            margin-left: 10px; /* Отступ слева */
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+        }
+
+    </style>
+
+    <script>
+        // Загрузка товаров в корзине при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCartItems();  // Загрузить товары в корзине сразу при загрузке страницы
+        });
+        
+        function loadCartItems() {
+            fetch('{% url "get_cart_items" %}')
+            .then(response => response.json())
+            .then(data => {
+                const cartItemsContainer = document.getElementById('cart-items');
+                cartItemsContainer.innerHTML = '';
+                data.items.forEach(item => {
+                    cartItemsContainer.innerHTML += `
+                        <div class="cart-item d-flex justify-content-between align-items-center mb-2" data-product-id="${item.product_id}">
+                            <img src="${item.product_image}" alt="${item.product_name}" style="width: 50px;">
+                            <div class="product-info">
+                                <p class="mb-0">${item.product_name}</p>
+                                <small>Цена: ${item.product_price} <span style="color: #FF5733;">Senim</span><span style="color: #3498db;">Coin</span></small>
+                            </div>
+                            <div class="quantity d-flex justify-content-center align-items-center">
+                                <span class="mx-2">${ item.quantity }</span>
+                            </div>
+
+                            <span>${item.item_total} <span style="color: #FF5733;">Senim</span><span style="color: #3498db;">Coin</span></span>
+                            <button class="btn btn-danger btn-sm" onclick="removeFromCart(${item.product_id})">&times;</button>
+                        </div>
+                    `;
+                });
+                document.getElementById('cart-total').innerHTML = data.cart_total + ' <span style="color: #FF5733;">Senim</span><span style="color: #3498db;">Coin</span>';
+
+                document.getElementById('cart-count').innerText = data.cart_count;
+            });
+        }
+
+        function addToCart(productId) {
+            fetch(`/store/add_to_cart/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('cart-count').innerText = data.cart_count;
+                openCartModal();
+                loadCartItems();
+            });
+        }
+
+        function removeFromCart(productId) {
+            fetch(`/store/remove_from_cart/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('cart-total').innerHTML = data.cart_total + ' <span style="color: #FF5733;">Senim</span><span style="color: #3498db;">Coin</span>';
+                loadCartItems();
+            });
+        }
+
+        document.querySelectorAll('.btn-buy').forEach(button => {
+            button.addEventListener('click', function() {
+                const productId = this.dataset.productId;
+                addToCart(productId);
+            });
+        });
+
+        function openCartModal() {
+            $('#cartModal').modal('show');
+            loadCartItems();
+        }
+
+        document.getElementById('place-order').addEventListener('click', function() {
+    fetch('{% url "order_success" %}', {
+        method: 'POST',  // POST-запрос для оформления заказа
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',  // CSRF-токен для защиты
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Показываем успешное сообщение и обновляем баланс
+            console.log(document.getElementById('order-success-message'), `${data.message}`)
+            document.getElementById('order-success-message').innerHTML = `${data.message}`;
+            $('#order-success-message').css('visibility', 'visible').css('opacity', '1');
+            setTimeout(function() {
+                $('#order-success-message').css('visibility', 'hidden').css('opacity', '0');
+            }, 5000);  // Сообщение исчезнет через 5 секунд
+
+            // Обновляем баланс на странице
+            document.getElementById('user-balance').textContent = data.balance;
+
+            // Очищаем корзину
+            document.getElementById('cart-items').innerHTML = '';
+            document.getElementById('cart-total').innerHTML = '0 <span style="color: #FF5733;">Senim</span><span style="color: #3498db;">Coin</span>';
+            document.getElementById('cart-count').innerText = '0';
+
+        } else {
+            // Показываем сообщение об ошибке
+            document.getElementById('order-message').innerHTML = `${data.message}`;
+            $('#order-message').css('visibility', 'visible').css('opacity', '1');
+            setTimeout(function() {
+                $('#order-message').css('visibility', 'hidden').css('opacity', '0');
+            }, 5000);  // Сообщение исчезнет через 5 секунд
+        }
+    })
+    .catch(error => {
+        document.getElementById('order-message').innerHTML = `
+            <div class="custom-alert failure-message">
+                Произошла ошибка при оформлении заказа. Попробуйте снова.
+            </div>`;
+        console.error('Ошибка:', error);
+    });
+});
+
+       
+
+    </script>
+{% endblock last %}

@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head %}
+	<link rel="stylesheet" href="{% static 'quizer/css/quizer_choose_style.css' %}">
+	<link rel="stylesheet" href="{% static 'open_quiz/css/open_quiz_choose.css' %}">
+	<style>
+		.ongoing-test-banner {
+			background-color: #f8d7da;
+			border: 1px solid #f5c6cb;
+			border-radius: 5px;
+			padding: 15px;
+			margin-bottom: 20px;
+		}
+		.ongoing-test-item {
+			background-color: #fff3cd;
+			border: 1px solid #ffeeba;
+			border-radius: 5px;
+			padding: 15px;
+			margin-bottom: 10px;
+		}
+		.continue-btn {
+			background-color: #28a745;
+			color: white;
+		}
+		.cancel-btn {
+			background-color: #dc3545;
+			color: white;
+		}
+	</style>
+{% endblock head %}
+
+{% block content %}
+
+<section id="page-banner" class="pt-55 pb-60 bg_cover" data-overlay="8">
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-12">
+				<div class="page-banner-cont">
+					<h3>Cвободное тестирование</h3>
+					<nav aria-label="breadcrumb">
+						<ol class="breadcrumb">
+							<li class="breadcrumb-item"><a href="{% url 'index' %}">Домашняя страница</a></li>
+							<li class="breadcrumb-item active" aria-current="page">Выбор теста</li>
+						</ol>
+					</nav>
+				</div>  <!-- page banner cont -->
+			</div>
+		</div> <!-- row -->
+	</div> <!-- container -->
+</section>
+
+<div class="container mt-5">
+    {% if ongoing_tests %}
+    <div class="ongoing-test-banner">
+        <h4>У вас есть незавершенные тесты</h4>
+        <p>Вы можете продолжить их прохождение или начать новый тест.</p>
+        
+        {% for progress in ongoing_tests %}
+        <div class="ongoing-test-item">
+            <div class="row">
+                <div class="col-md-8">
+                    <h5>{{ progress.quiz_subject.name }}</h5>
+                    <p>
+                        <strong>Язык:</strong> {{ progress.quiz_subject.get_language_display }}<br>
+                        <strong>Оставшееся время:</strong> {{ progress.remaining_seconds|divisibleby:60 }} минут {{ progress.remaining_seconds|modulo:60 }} секунд<br>
+                        <strong>Последнее обновление:</strong> {{ progress.last_update|date:"d.m.Y H:i" }}
+                    </p>
+                </div>
+                <div class="col-md-4 text-right d-flex align-items-center justify-content-end">
+                    <a href="{% url 'continue_test' progress.id %}" class="btn continue-btn mr-2">Продолжить</a>
+                    <a href="{% url 'cancel_test' progress.id %}" class="btn cancel-btn" onclick="return confirm('Вы уверены, что хотите отменить тест? Весь прогресс будет потерян.')">Отменить</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row justify-content-center">
+        {% for subject in qs %}
+            <div class="col-md-4 mb-5">
+                <a href="{% url 'open_quizer_page' %}?open_quizer_id={{subject.id}}" class="subject-link">
+                    <div class="card shadow">
+                        <div style="background-color: #def1f7;" class="card-header text-white text-center">
+                            <h3><strong>{{ subject.name }}</strong></h3>
+                        </div>
+                        <div class="card-body text-center">
+                            <p class="card-text">
+                                <strong>Язык:</strong> {{ subject.get_language_display }}<br>
+                                <strong>Лимит времени:</strong> {{ subject.time_limit_minutes }} минут
+                            </p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+
+{% endblock content %}
+{% block last %}
+<script>
+	{% if user.is_authenticated %}
+			{% if user.groups.all.first.name == 'Студент' %}	
+				document.querySelectorAll('#navbarSupportedContent ul li')[5].querySelector('a').classList.add('active');
+			{% else %}
+				document.querySelectorAll('#navbarSupportedContent ul li')[7].querySelector('a').classList.add('active');
+			{% endif %}
+	{% else %}
+		document.querySelectorAll('#navbarSupportedContent ul li')[4].querySelector('a').classList.add('active');
+	{% endif %}
+</script>
+{% endblock last %}

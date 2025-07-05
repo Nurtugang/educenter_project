@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" type="text/css" href="{% static 'date/daterangepicker.css' %}" />
+{% endblock head %}
+{% block content %}
+
+<section id="page-banner" class="pt-55 pb-60 bg_cover" data-overlay="8">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-banner-cont">
+                    <h2>Пропущенные уроки</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'index' %}">Домашняя страница</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'check_journal' %}">Проверка журнала</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">
+                            	Пропущенные уроки {{teacher.first_name}} {{teacher.last_name}}
+                        	</li>
+                        </ol>
+                    </nav>
+                </div>  <!-- page banner cont -->
+            </div>
+        </div> <!-- row -->
+    </div> <!-- container -->
+</section>
+<!--====== PAGE BANNER PART ENDS ======-->
+
+<section class="pt-30 pb-120 gray-bg">
+	<div class="container mt-5">
+		<div class="row">
+			<div class="col-lg-12 mb-3" style="background-color: white; padding: 30px;">
+				<h4>{{missed_lessons_cnt}} из {{lessons_cnt}} уроков не заполнено за выбранный период </h4>
+				<br>
+				<div id="tabel-short" class="table-container" style="overflow-x: auto;">
+					<form method="post" id="lesson-form">
+	    				{% csrf_token %}
+						<table class="table table-bordered">
+							<thead>
+								<tr>
+									<th class="text-center">№</th>
+									<th class="text-center">Урок</th>
+									<th class="text-center">Группа</th>
+									<th class="text-center">Дедлайн</th>
+									<th class="text-center">Продлить?</th>
+
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td></td>
+									<td></td>
+									<td></td>
+									<td class="text-center">Выбрать все</td>
+									<td class="text-center"><input style="width:1.5rem;height:1.5rem" type="checkbox" id="check-all"></td>
+								</tr>
+								{% for l in missed_lessons %}
+									<tr>
+										<td class="text-center">{{forloop.counter}}</td>
+										<td class="text-center">
+											<a href="{% url 'lesson_single' l.id %}">{{l}}</a>
+										</td>
+										<td class="text-center">{{l.study_group.name}}</td>
+										<td class="text-center">{{l.deadline}}</td>
+										<td class="text-center">
+					                        <input type="checkbox" style="width:1.5rem;height:1.5rem" name="selected_lessons" value="{{ l.id }}">
+					                    </td>
+									</tr>
+								{% endfor %}
+								
+							</tbody>
+						</table>
+						<button class="main-btn" type="submit">Продлить дедлайн выбранных уроков</button>
+					</form>
+				</div>
+			</div>
+
+			
+		</div>	
+	</div>
+</section>
+{% endblock content %}
+{% block last %}
+<script>
+	 document.getElementById('check-all').addEventListener('change', function () {
+        var checkboxes = document.querySelectorAll('input[name="selected_lessons"]');
+        for (var i = 0; i < checkboxes.length; i++) {
+            checkboxes[i].checked = this.checked;
+        }
+    });
+    document.getElementById('lesson-form').addEventListener('submit', function (e) {
+        e.preventDefault(); // Prevent the default form submission
+
+        // Find all selected checkboxes
+        var selectedCheckboxes = document.querySelectorAll('input[name="selected_lessons"]:checked');
+        var selectedLessonIds = Array.from(selectedCheckboxes).map(function (checkbox) {
+            return checkbox.value;
+        });
+
+        // Set the selected lesson IDs as a hidden input in the form
+        var hiddenInput = document.createElement('input');
+        hiddenInput.setAttribute('type', 'hidden');
+        hiddenInput.setAttribute('name', 'selected_lessons');
+        hiddenInput.setAttribute('value', selectedLessonIds.join(','));
+
+        // Append the hidden input to the form
+        this.appendChild(hiddenInput);
+
+        // Now submit the form with the selected lesson IDs
+        this.submit();
+    });
+</script>
+
+<script>
+	{% if user.groups.all.first.name == 'Администратор' %}
+	document.querySelectorAll('#navbarSupportedContent ul li')[5].querySelector('a').classList.add('active');
+	{% endif %}
+</script>
+{% endblock last %}
+

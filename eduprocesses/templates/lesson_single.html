@@ -1,0 +1,844 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+{% load custom_tags %}
+
+{% block content %}
+
+<style>
+  .comment-editable {
+    max-width: 200px; /* Задайте нужную ширину ячейки */
+    white-space: nowrap; /* Текст в одной строке */
+    overflow: hidden; /* Скрыть переполненный текст */
+    text-overflow: ellipsis; /* Добавить многоточие в конце переполненного текста */
+  }
+  .btn-main {
+      cursor: pointer;
+      font-family: 'Patrick Hand', cursive;
+      font-size: 18px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      box-shadow: 0 4px #222;
+      margin-right: 10px;
+  }
+  .btn-classic:hover {
+          background-color: gray;
+          box-shadow: 0 6px #222;
+          position: relative;
+          top: -2px;
+  }
+  .btn-green:hover {
+          background-color: limegreen;
+          box-shadow: 0 6px #222;
+          position: relative;
+          top: -2px;
+  }
+</style>
+<style>
+  @media (max-width: 768px) {
+      /* Убедимся, что модальное окно корректно масштабируется на мобильных устройствах */
+      #homeworkModal .modal-dialog {
+          max-width: 90%; /* делаем ширину модального окна более компактной на мобильных устройствах */
+          margin: 1.75rem auto; /* небольшой отступ сверху и снизу */
+      }
+      #homeworkModal textarea {
+          height: 150px; /* уменьшение высоты текстового поля на мобильных устройствах для удобства */
+      }
+  }
+
+  /* Дополнительные стили для увеличения ширины на больших экранах */
+  @media (min-width: 992px) {
+      #homeworkModal .modal-dialog {
+          max-width: 800px; /* увеличиваем ширину модального окна на больших экранах */
+      }
+  }
+</style>
+<section id="page-banner" class="pt-55 pb-60 bg_cover" data-overlay="8">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-banner-cont">
+                    <h2>Урок {{lesson.subject.name}} {{lesson.date}}</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'index' %}">Домашняя страница</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'journal' %}">Журнал</a></li>
+                            {% if lesson.study_group.teacher == user %}
+                              <li class="breadcrumb-item"><a href="{% url 'journal_single' lesson.study_group.id %}">{{lesson.study_group.name}}</a></li>
+                            {% endif %}
+                            <li class="breadcrumb-item active" aria-current="page">Урок {{lesson.subject.name}} {{lesson.date}}</li>
+
+                        </ol>
+                    </nav>
+                </div>  <!-- page banner cont -->
+            </div>
+        </div> <!-- row -->
+    </div> <!-- container -->
+</section>
+<!--====== PAGE BANNER PART ENDS ======-->
+
+<section class="pt-30 pb-30 gray-bg">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12 mb-3" style="background-color: white; padding: 30px;">
+        <div class="row">
+          <div class="col-md-4">
+            <div class="info-box p-2 mb-3 text-center" style="border: 1px solid #ddd; border-radius: 8px;">
+              <h6 class="info-title">
+                <strong>
+                  {% if teacher.teacher_status == 'ML1' %}
+                    Младший тренер 1
+                  {% elif teacher.teacher_status == 'ML2' %}
+                    Младший тренер 2
+                  {% elif teacher.teacher_status == 'ST1' %}
+                    Старший тренер 1
+                  {% elif teacher.teacher_status == 'ST2' %}
+                    Старший тренер 2
+                  {% elif teacher.teacher_status == 'V' %}
+                    Высший тренер
+                  {% endif %}
+                </strong>
+              </h6>
+              <p class="mb-1"> {{teacher.get_fio}}</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="info-box p-2 mb-3 text-center" style="border: 1px solid #ddd; border-radius: 8px;">
+              <h6 class="info-title"><strong>Статус урока</strong></h6>
+              <p class="mb-1">
+                <p>
+                  {% if lesson.status == 'P' %}
+                      Урок проведен
+                  {% elif lesson.status == 'O' %}
+                    {% if lesson.substitute_teacher %}
+                      <a href="#" data-toggle="modal" data-target="#lessonModal" data-message="Урок отменен. Причина: {{lesson.reason_for_not_held}}<br>Была произведена замена учителя на {{lesson.substitute_teacher}}">Урок отменен</a>
+                    {% else %}
+                      <a href="#" data-toggle="modal" data-target="#lessonModal" data-message="Причина: {{lesson.reason_for_not_held}}">Урок отменен</a>
+                    {% endif %}
+                  {% elif lesson.status == 'Z' and lesson.substitute_teacher %}
+                    <a href="#" data-toggle="modal" data-target="#lessonModal" data-message="Была произведена замена учителя на {{lesson.substitute_teacher.last_name}} {{lesson.substitute_teacher.first_name}}">Урок с заменой</a>
+                  {% elif lesson.status == 'NP' %}
+                    Урок не проведен
+                  {% endif %}
+                </p>
+                <!-- Модальное окно -->
+                <div class="modal fade" id="lessonModal" tabindex="-1" role="dialog" aria-labelledby="lessonModalLabel" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="lessonModalLabel">Детали урока</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <div class="modal-body" id="lessonModalBody">
+                        <!-- Здесь будет отображаться динамическое сообщение -->
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="info-box p-2 mb-3 text-center" style="border: 1px solid #ddd; border-radius: 8px;">
+              <h6 class="info-title"><strong>Максимальная оценка</strong></h6>
+              <p class="mb-1"></p>
+              <p>
+                <a href="#" id="max_grade-modal" data-toggle="modal" data-target="#max_gradeModal" style="display: inherit;">
+                  {{lesson.max_grade}}
+                </a>
+              </p>
+
+              <!-- Модальное окно для добавления/редактирования максимальнйо оценки -->
+              <div class="modal fade" id="max_gradeModal" tabindex="-1" role="dialog" aria-labelledby="#max_gradeModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg " role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="#max_gradeModalLabel">Редактировать максимальную оценку</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="max_grade-form">
+                                <input id="max_grade-text" class="form-control" value="{{ lesson.max_grade }}" placeholder="Введите значение максимальной оценки...">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-classic btn-main btn-gray" data-dismiss="modal">Отмена</button>
+                            <button type="button" id="save-max_grade-btn" class="btn btn-classic btn-main btn-green btn-primary">Сохранить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="info-box p-2 mb-3 text-center" style="border: 1px solid #ddd; border-radius: 8px;">
+              <h6 class="info-title"><strong>Количество часов</strong></h6>
+              <p class="mb-1">{{lesson.hours}}</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="info-box p-2 mb-3 text-center" style="border: 1px solid #ddd; border-radius: 8px;">
+              <h6 class="info-title"><strong>{{study_group.group_type}}</strong></h6>
+              <p class="mb-1">{{study_group}}</p>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="info-box p-2 mb-3 text-center" style="border: 1px solid #ddd; border-radius: 8px;">
+              <h6 class="info-title"><strong>Домашнее задание</strong></h6>
+              <p>
+                <a href="#" id="homework-modal" data-toggle="modal" data-target="#homeworkModal" style="display: inherit;">
+                {% if lesson.homework %}
+                    Просмотреть домашнее задание
+                {% else %}
+                    Не назначено
+                {% endif %}
+                </a>
+              </p>
+              
+              <!-- Модальное окно для добавления/редактирования домашнего задания -->
+              <div class="modal fade" id="homeworkModal" tabindex="-1" role="dialog" aria-labelledby="homeworkModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg " role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="homeworkModalLabel">Редактировать домашнее задание</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="homework-form">
+                                <textarea id="homework-text" class="form-control" rows="8" placeholder="Введите текст домашнего задания...">{% if lesson.homework %}{{ lesson.homework }}{% endif %}</textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-classic btn-main btn-gray" data-dismiss="modal">Отмена</button>
+                            <button type="button" id="save-homework-btn" class="btn btn-classic btn-main btn-green btn-primary">Сохранить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+          </div>
+        </div>
+        {% if lesson.status == 'NP' or lesson.status == 'Z' and is_substituted_teacher %}
+          <div class="col-md-4">
+            <div class="info-box mb-3 text-center" style="border: 1px solid #ddd; border-radius: 8px;">
+              <button type="button" style="width: 100%; height: 100%;" class="main-btn" data-toggle="modal" data-target="#proveden-modal">
+                Урок проведен
+              </button>
+            </div>
+            </div>
+          <div class="col-md-4">
+            <div class="info-box mb-3 text-center" style="border: 1px solid #ddd; border-radius: 8px;">
+              <button type="button" style="width: 100%; height: 100%;" class="main-btn" data-toggle="modal" data-target="#otmenen-modal">
+                Отменить урок
+              </button>
+            </div>
+          </div>
+          {% if not is_substituted_teacher %}
+          <div class="col-md-4">
+            <div class="info-box mb-3 text-center" style="border: 1px solid #ddd; border-radius: 8px; ">
+              <button type="button" style="width: 100%; height: 100%;" class="main-btn" data-toggle="modal" data-target="#zamena-modal">
+                Замена учителя
+              </button>
+            </div>
+          </div>
+          {% endif %}
+
+          </div>
+        {% endif %}
+
+
+        <div class="modal fade" id="proveden-modal">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h4 class="modal-title">Подтвердите ваше действие</h4>
+              </div>
+              <div class="modal-body">
+                <div class="reviews-cont p-0">
+                  <div class="reviews-form">
+                    <p style="text-align: center;">Удостовертесь что все студенты получили свои оценки или отмечены, прежде чем завершать урок!</p>
+                    <form method="post" action="{% url 'lesson_single' lesson_id %}">
+                      {% csrf_token %}
+                      <div class="row">
+                        <div class="col-lg-12">
+                          <div class="form-singel">
+                            <input type="submit" class="main-btn" value='Подтвердить'>
+                          </div>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+                
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal fade" id="otmenen-modal">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h4 class="modal-title">Подтвердите ваше действие</h4>
+              </div>
+              <div class="modal-body">
+                <div class="reviews-cont p-0">
+                  <div class="reviews-form">
+                    <form id="ratingForm" action="{% url 'lesson_single' lesson_id  %}" method="POST">
+                      {% csrf_token %}
+                      <div class="row">
+                        <div class="col-lg-12">
+                          <div class="form-singel">
+                            <textarea name='reason' placeholder="Напишите причину отмены урока"></textarea>
+                          </div>
+                        </div>
+                        
+                        <div class="col-lg-12">
+                          <div class="form-singel">
+                            <input type="submit" class="main-btn" value='Подтвердить'></button>
+                          </div>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal fade" id="zamena-modal">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h4 class="modal-title">Подтвердите замену учителя</h4>
+              </div>
+              <div class="modal-body">
+                <div class="reviews-cont p-0">
+                  <div class="reviews-form">
+                    <form id="ratingForm" action="{% url 'lesson_single' lesson_id  %}" method="POST">
+                      {% csrf_token %}
+                      <div class="row">
+                        <div class="col-lg-12">
+                          <div class="form-singel">
+                            <select class="form-control" name="zamena-teacher" id="zamena-teacher">
+                              <option value="-1">Выберите учителя</option>
+                              {% for teacher in teachers %}
+                                <option value="{{teacher.id}}">{{teacher.first_name}} {{teacher.last_name}}</option>
+                              {% endfor %}
+                            </select>
+                          </div>
+                        </div>
+                        
+                        <div class="col-lg-12">
+                          <div class="form-singel">
+                            <input type="submit" class="main-btn" value='Подтвердить'></button>
+                          </div>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                  </div>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+      <div class="content-section col-lg-12">
+        <div class="table-responsive">
+          <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th class="text-center">№</th>
+                    <th class="text-center">Ученик</th>
+                    <th class="text-center">Присутствие</th>
+                    <th class="text-center">Оценка</th>
+                    <th class="text-center">Комментарий к уроку</th>
+                    <th class="text-center">Выполнение ДЗ</th>
+                    <th class="text-center">Senim Coin</th>
+                </tr>
+            </thead>
+            <tbody>
+              {% for sa in student_attendances %}
+              <tr>
+                <td class="text-center">{{forloop.counter}}</td>
+                <td class="text-center">{{sa.student.first_name}} {{sa.student.last_name}}</td>
+                <td class="status-editable text-center" data-subs="{{is_substituted_teacher}}" data-status="{{sa.lesson.status}}" data-lesson="{{sa.lesson.id}}" data-student="{{sa.student.id}}">
+                  {{sa.get_attendance_status_display|default:' '}}
+                </td>
+                <td class="editable text-center" data-subs="{{is_substituted_teacher}}" data-status="{{sa.lesson.status}}" data-lesson="{{sa.lesson.id}}" data-student="{{sa.student.id}}">{{sa.mark|default:' '}}</td>
+                <td class="comment-editable text-center" data-subs="{{is_substituted_teacher}}" data-status="{{sa.lesson.status}}" data-lesson="{{sa.lesson.id}}" data-student="{{sa.student.id}}" >{{sa.comment|default:' '}}</td>
+                  <!-- Модальное окно для отображения полного комментария -->
+                <div class="modal fade" id="comment-modal" tabindex="-1" role="dialog" aria-labelledby="commentModalLabel" aria-hidden="true">
+                  <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="commentModalLabel">Полный комментарий</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <div class="modal-body" id="full-comment">
+                        <!-- Здесь будет отображаться текст комментария -->
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <td class="homework-editable text-center" data-subs="{{is_substituted_teacher}}" data-status="{{sa.lesson.status}}" data-lesson="{{sa.lesson.id}}" data-student="{{sa.student.id}}">
+                    {% if sa.homework_completed == True %}
+                        <span style="color: #28a745;">✓ Выполнил</span>
+                    {% elif sa.homework_completed == False %}
+                        <span style="color: #dc3545;">✗ Не выполнил</span>
+                    {% else %}
+                        <span style="color: #6c757d;">— Не отмечено</span>
+                    {% endif %}
+                </td>
+                <td class="coins-editable text-center" data-subs="{{is_substituted_teacher}}" data-status="{{sa.lesson.status}}" data-lesson="{{sa.lesson.id}}" data-student="{{sa.student.id}}">{{sa.coins|default:' '}}</td>
+              </tr>
+              
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</section>
+{% if messages %}
+  {% for message in messages %}
+      {% if message.tags == 'success' %}
+          <div class="custom-alert success-message" id="Message">
+              <p>{{message}}</p>
+          </div>
+      {% elif message.tags == 'error' %}
+          <div class="custom-alert failure-message" id="Message">
+              <p>{{message}}</p>
+          </div>
+      {% endif %}
+  
+  {% endfor %}
+{% endif %}
+{% endblock content %} 
+{% block last %}
+
+<script>
+// JavaScript для обработки выполнения домашних заданий
+// JavaScript для обработки выполнения домашних заданий
+$(document).ready(function(){
+    // Получаем CSRF токен
+    function getCSRFToken() {
+        return $('[name=csrfmiddlewaretoken]').val() || $('meta[name=csrf-token]').attr('content') || '{{ csrf_token }}';
+    }
+
+    $(document).on("click",".homework-editable",function(){
+        var status = $(this).data("status");
+        var is_substituted_teacher = $(this).data("subs");
+        
+        if (status == 'NP' || is_substituted_teacher == 'True') {
+            var yesButton = "<button data-homework='true' class='btn btn-success btn-sm homework-button'>✓ Выполнил</button>";
+            var noButton = "<button data-homework='false' class='btn btn-danger btn-sm homework-button'>✗ Не выполнил</button>";
+            var clearButton = "<button data-homework='clear' class='btn btn-secondary btn-sm homework-button'>— Очистить</button>";
+            
+            var buttonsContainer = "<div style='padding: 5px;' class='homework-buttons'>" + yesButton + " " + noButton + " " + clearButton + "</div>";
+            
+            $(this).html(buttonsContainer);
+            $(this).removeClass("homework-editable");
+        }
+    });
+
+    $(document).on("click",".homework-button",function(){
+        var homework_status = $(this).data("homework");
+        console.log("Button clicked, homework_status:", homework_status, "type:", typeof homework_status);
+        
+        var td = $(this).closest("td");
+        td.addClass("homework-editable");
+
+        var displayText;
+        var statusToSend;
+        
+        if(homework_status === true) {
+            displayText = '<span style="color: #28a745;">✓ Выполнил</span>';
+            statusToSend = 'true';
+        } else if(homework_status === false) {
+            displayText = '<span style="color: #dc3545;">✗ Не выполнил</span>';
+            statusToSend = 'false';
+        } else {
+            displayText = '<span style="color: #6c757d;">— Не отмечено</span>';
+            statusToSend = 'clear';
+        }
+        
+        td.html(displayText);
+        sendHomeworkToServer(td.data("lesson"), td.data("student"), statusToSend);
+    });
+
+    function sendHomeworkToServer(lesson_id, student_id, homework_status){
+        console.log("Sending homework data:", {
+            lesson_id: lesson_id,
+            student_id: student_id,
+            homework_status: homework_status
+        });
+
+        $.ajax({
+            url: "{% url 'add_homework_status' %}",
+            type: "POST",
+            data: {
+                lesson_id: lesson_id,
+                student_id: student_id,
+                homework_status: homework_status
+            },
+        })
+        .done(function(response){
+            console.log("Homework status updated:", response);
+        })
+        .fail(function(){
+            console.log("Error occurred while updating homework status");
+        });
+    }
+});
+</script>
+
+<script>
+  // Скрипт для сохранения значения максимального оценки
+  document.addEventListener("DOMContentLoaded", function () {
+        let saveMax_GradeBtn = document.getElementById("save-max_grade-btn");
+        if (saveMax_GradeBtn) {
+          saveMax_GradeBtn.addEventListener("click", function () {
+                let max_gradeText = document.getElementById("max_grade-text").value;
+                let lessonId = "{{ lesson.id }}";
+
+                // AJAX запрос для сохранения значения максимальной оценки
+                fetch("/lessons/" + lessonId + "/add_max_grade/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    body: JSON.stringify({
+                        max_grade: max_gradeText
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Закрываем модальное окно
+                        $('#max_gradeModal').modal('hide');
+                        window.location.reload();
+                        // Обновляем текст ссылки на странице
+                        //document.getElementById("max_grade-modal").innerText = max_gradeText;
+
+                    } else {
+                        console.error("Ошибка");
+                    }
+                })
+                .catch(error => {
+                    console.error("Ошибка:", error);
+                });
+            });
+        }
+    });
+</script>
+<script>
+  // Скрипт для сохранения домашнего задания
+  document.addEventListener("DOMContentLoaded", function () {
+        let saveHomeworkBtn = document.getElementById("save-homework-btn");
+        if (saveHomeworkBtn) {
+            saveHomeworkBtn.addEventListener("click", function () {
+                let homeworkText = document.getElementById("homework-text").value;
+                let lessonId = "{{ lesson.id }}";
+
+                // AJAX запрос для сохранения домашнего задания
+                fetch("/lessons/" + lessonId + "/add_homework/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    body: JSON.stringify({
+                        homework: homeworkText
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Закрываем модальное окно
+                        $('#homeworkModal').modal('hide');
+
+                        // Обновляем текст ссылки на странице
+                        document.getElementById("homework-modal").innerText = "Изменить домашнее задание";
+
+                        // Обновляем текст в модальном окне
+                        document.getElementById("homeworkModalLabel").innerText = "Редактировать домашнее задание";
+                    } else {
+                        console.error("Ошибка");
+                    }
+                })
+                .catch(error => {
+                    console.error("Ошибка:", error);
+                });
+            });
+        }
+    });
+</script>
+<!-- Скрипт для изменения содержимого модального окна -->
+<script>
+  $('#lessonModal').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget); // Кнопка, которая вызвала модал
+    var message = button.data('message'); // Извлечение данных
+
+    var modal = $(this);
+    modal.find('.modal-body').text(message); // Установка текста в модальном окне
+  });
+</script>
+
+<!-- Скрипт для коинов -->
+<script>
+	$(document).ready(function(){
+    $(document).on("click",".coins-editable",function(){
+			var status = $(this).data("status")
+			var is_substituted_teacher = $(this).data("subs")
+      var td = $(this).closest("td");
+      var atstatus = td.prev().text();
+      
+			if ( (status == 'NP' || is_substituted_teacher == 'True') && (atstatus != 'ABS-R' && atstatus != 'ABS-NR') ) {
+				var value=$(this).text();
+        var input_type="number";
+        var input="<input type='"+input_type+"' class='form-control coins-input coins-input-data' value='"+value+"'>";
+        $(this).html(input);
+        $(this).removeClass("coins-editable")
+			}  
+    });
+
+    $(document).on("blur",".coins-input-data",function(){
+        var value=$(this).val().trim();
+        var td=$(this).parent("td");
+        $(this).remove();
+        td.html(value);
+        td.addClass("coins-editable");
+        sendCoinsToServer(td.data("lesson"), td.data("student"), value);
+    });
+    $(document).on("keypress",".coins-input-data",function(e){
+        var key=e.which;
+        if(key==13){
+          var value=$(this).val().trim();
+          var td=$(this).parent("td");
+          td.html(value);
+          td.addClass("coins-editable");
+          $(this).remove();
+          sendCoinsToServer(td.data("lesson"), td.data("student"), value);
+        }
+    });
+    function sendCoinsToServer(lesson_id,student_id,value){
+        $.ajax({
+            url:"{% url 'add_coins' %}",
+            type:"POST",
+            data:{lesson_id:lesson_id,student_id:student_id,value:value},
+        })
+        .done(function(response){
+            console.log(response);
+            $("td[data-lesson='" + lesson_id + "'][data-student='" + student_id + "']").text(response.coins);
+        })
+        .fail(function(){
+           console.log("Error Occured");
+        });
+    }
+  });
+</script>
+
+<script>
+	$(document).ready(function(){
+    $(".comment-editable").each(function() {
+        var status = $(this).data("status");
+        var is_substituted_teacher = $(this).data("subs");
+
+        // Если урок проведен, добавляем класс для pointer
+        if (status !== 'NP' && is_substituted_teacher !== 'True') {
+            $(this).css('cursor', 'pointer');
+        }
+    });
+		$(document).on("click",".editable",function(){
+			var status = $(this).data("status")
+			var is_substituted_teacher = $(this).data("subs")
+      var td = $(this).closest("td");
+      var atstatus = td.prev().text();
+      
+			if ( (status == 'NP' || is_substituted_teacher == 'True') && (atstatus != 'ABS-R' && atstatus != 'ABS-NR') ) {
+				var value=$(this).text();
+        var input_type="number";
+        var min = "0";
+        var max = "10"
+        var input="<input type='"+input_type+"' class='form-control mark-input input-data' value='"+value+"'>";
+        $(this).html(input);
+        $(this).removeClass("editable")
+			}  
+    });
+		$(document).on("click",".comment-editable",function(){
+			var status = $(this).data("status")
+			var is_substituted_teacher = $(this).data("subs")
+      var value = $(this).text()
+			//if ( status == 'NP' || is_substituted_teacher == 'True') {
+        var value=$(this).text();
+        var input_type="text";
+        // var input="<input type='"+input_type+"' class='form-control mark-input comment-input-data' value='"+value+"'>";
+        var input = "<textarea class='form-control comment-input-data' rows='4'>" + value + "</textarea>";
+        
+        $(this).html(input);
+        $(this).removeClass("comment-editable")
+      //}
+      //else {
+      //  $("#full-comment").text(value); // Вставляем комментарий в модальное окно
+      //  $("#comment-modal").modal('show'); // Показываем модальное окно
+      //}
+    });
+    $(document).on("click",".status-editable",function(){
+			var status = $(this).data("status")
+			var is_substituted_teacher = $(this).data("subs")
+			if ( status == 'NP' || is_substituted_teacher == 'True') {
+        var value=$(this).text().match(/\d+/g)
+				var saveButton = "<button data-abs='ABS-NR' class='btn btn-outline-danger nb-button'>НБ</button>";
+				var cancelButton = "<button data-abs='ABS-R' class='btn btn-outline-danger nb-button'>НБ(П)</button>";
+				var presentButton = "<button data-abs='PR' class='btn btn-outline-primary nb-button'>Б</button>";
+
+				var buttonsContainer = "<div style='padding: 0px;' class='input-buttons col text-center'>" +presentButton+ saveButton + cancelButton + "</div>"; // Wrap buttons in a Bootstrap column
+				var buttons = "<div class='row '>" + buttonsContainer + "</div>"; // Wrap input and buttons in a Bootstrap row
+        $(this).html(buttons);	
+        $(this).removeClass("status-editable")
+      }
+    });
+    $(document).on("click",".nb-button",function(){
+			abs = $(this).data("abs")
+			var td = $(this).closest("td");
+			td.addClass("status-editable");
+
+      if(abs == 'ABS-R')
+				td.html('Не пришел на урок с причиной')
+			else if(abs=='ABS-NR')
+				td.html('Не пришел на урок без причины')
+      else if(abs=='PR')
+				td.html('Пришел на урок')
+			else
+				td.html(abs);
+			td.find(".input-buttons").remove();
+      sendAbsToServer(td.data("lesson"), td.data("student"), abs);
+		});
+
+		$(document).on("blur",".input-data",function(){
+        var value=$(this).val();
+        var maxGrade = parseFloat("{{ lesson.max_grade }}");
+        console.log(maxGrade)
+        var td=$(this).parent("td");
+        if (value < 0 || value > maxGrade) {
+          alert("Ошибка: Оценка должна быть в пределах от 0 до " + maxGrade);
+          $(this).val(""); // Очищаем поле ввода
+          return;
+        }
+
+        $(this).remove();
+        td.html(value);
+        td.addClass("editable");
+        sendToServer(td.data("lesson"), td.data("student"), value);
+    });
+    $(document).on("blur",".comment-input-data",function(){
+        var value=$(this).val();
+        var td=$(this).parent("td");
+        $(this).remove();
+        td.html(value);
+        td.addClass("comment-editable");
+        sendCommentToServer(td.data("lesson"), td.data("student"), value);
+    });
+    	
+    $(document).on("keypress",".input-data",function(e){
+        var key=e.which;
+        if(key==13){
+          var value=$(this).val();
+          var maxGrade = parseFloat("{{ lesson.max_grade }}"); // Получение максимальной оценки из шаблона
+
+          if (value < 0 || value > maxGrade) {
+              alert("Ошибка: Оценка должна быть в пределах от 0 до " + maxGrade);
+              $(this).val(""); // Очищаем поле ввода
+              return;
+          }
+
+          var td=$(this).parent("td");
+          var previousTd = td.prev();
+          td.html(value);
+          td.addClass("editable");
+          previousTd.text('Пришел на урок');
+          $(this).remove();
+          sendToServer(td.data("lesson"), td.data("student"), value);
+        }
+    });
+    $(document).on("keypress",".comment-input-data",function(e){
+        var key=e.which;
+        if(key==13){
+          var value=$(this).val();
+          var td=$(this).parent("td");
+          $(this).remove();
+          td.html(value);
+          td.addClass("comment-editable");
+          sendCommentToServer(td.data("lesson"), td.data("student"), value);
+        }
+    });
+
+    function sendToServer(lesson_id,student_id,value){
+        $.ajax({
+            url:"{% url 'add_mark' %}",
+            type:"POST",
+            data:{lesson_id:lesson_id,student_id:student_id,value:value},
+        })
+        .done(function(response){
+            console.log(response);
+        })
+        .fail(function(){
+           console.log("Error Occured");
+        });
+    }
+    function sendCommentToServer(lesson_id,student_id,value){
+        $.ajax({
+            url:"{% url 'add_comment' %}",
+            type:"POST",
+            data:{lesson_id:lesson_id,student_id:student_id,value:value},
+        })
+        .done(function(response){
+            console.log(response);
+        })
+        .fail(function(){
+           console.log("Error Occured");
+        });
+    }
+    function sendAbsToServer(lesson_id,student_id,abs){
+	        $.ajax({
+	            url:"{% url 'add_abs' %}",
+	            type:"POST",
+	            data:{lesson_id:lesson_id,student_id:student_id,abs:abs},
+	        })
+	        .done(function(response){
+	            console.log(response);
+	        })
+	        .fail(function(){
+	           console.log("Error Occured");
+	        });
+	    }
+	});
+</script>
+<script>
+    $(document).ready(function() {
+        $('#Message').css('visibility', 'visible').css('opacity', '1');
+        setTimeout(function() {
+            $('#Message').css('visibility', 'hidden').css('opacity', '0');
+        }, 5000); // Hide the message after 3 seconds (adjust as needed)
+    });
+    document.querySelectorAll('#navbarSupportedContent ul li')[3].querySelector('a').classList.add('active');
+</script>
+{% endblock last %}

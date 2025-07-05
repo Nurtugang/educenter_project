@@ -1,0 +1,372 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+{% load custom_tags %}
+
+{% load static %}
+
+{% block content %}
+<style>
+  .table-container {
+    overflow: auto;
+    max-height: 500px; /* Установите желаемую максимальную высоту */
+  }
+
+  .table th {
+    position: sticky;
+    top: 0;
+    background-color: #fff; /* Установите желаемый цвет фона */
+    z-index: 2; /* Установите z-index по вашему усмотрению */
+  }
+  th:first-child, td:first-child
+	{
+	position:sticky;
+	left:0px;
+    background-color: white;
+	}
+	
+</style>
+<section id="page-banner" class="pt-55 pb-60 bg_cover" data-overlay="8">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-banner-cont">
+                    <h2>{{group}}</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'index' %}">Домашняя страница</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'journal' %}">Журнал</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">{{group}}</li>
+                        </ol>
+                    </nav>
+                </div>  <!-- page banner cont -->
+            </div>
+        </div> <!-- row -->
+    </div> <!-- container -->
+</section>
+<!--====== PAGE BANNER PART ENDS ======-->
+
+<section class="pt-30 pb-30 gray-bg">
+	<div class="container-fluid">
+		<div class="row align-items-center">
+			<div class="col-md-12" style="background-color: white; padding-left: 30px; padding-right: 30px; padding-top: 30px;">
+				<h4 class="super-centered"><strong>Выберите четверть:</strong></h4>
+			</div>
+		</div>
+
+		<div class="row align-items-center">
+			<div class="col-lg-12 mb-3" style="background-color: white; padding: 30px;">
+				<form method="post" action="{% url 'journal_single' group_id %}">
+					<div class="d-flex flex-column flex-md-row justify-content-between">
+                        {% csrf_token %}
+							<button style="border-radius: 0px; width: 100%; margin-bottom: 10px;" type="submit"  class="main-btn quarter-button {% if selected_quarter == '1' %}selected{% endif %}" name="Q1" value="1">Первая четверть</button>
+							<button style="border-radius: 0px; width: 100%; margin-bottom: 10px;" type="submit" class="main-btn quarter-button {% if selected_quarter == '2' %}selected{% endif %}" name="Q2" value="2">Вторая четверть</button>
+							<button style="border-radius: 0px; width: 100%; margin-bottom: 10px;" type="submit" class="main-btn quarter-button {% if selected_quarter == '3' %}selected{% endif %}" name="Q3" value="3">Третья четверть</button>
+							<button style="border-radius: 0px; width: 100%; margin-bottom: 10px;" type="submit" class="main-btn quarter-button {% if selected_quarter == '4' %}selected{% endif %}" name="Q4" value="4">Четвертая четверть</button>
+                    </div>
+				</form>
+			</div>
+		</div>
+		<div class="row align-items-center">
+			<div class="col-md-12" style="background-color: white; padding-left: 30px; padding-right: 30px; padding-top: 30px;">
+				<h4 class="super-centered"><strong>Журнал</strong></h4>
+			</div>
+			<div class="col-lg-12 mb-3" style="background-color: white; padding: 30px;">
+				<div class="row">
+				  <div class="col-md-4">
+					<div class="info-box mb-3 text-center" style="border: 1px solid #ddd; border-radius: 8px;">
+					  <h6 class="info-title"><strong>Группа</strong></h6>
+					  <p class="mb-1">{{group}}</p>
+					</div>
+				  </div>
+				  <div class="col-md-4">
+					<div class="info-box mb-3 text-center" style="border: 1px solid #ddd; border-radius: 8px;">
+					  <button type="button" style="width: 100%; height: 100%;" class="main-btn" data-toggle="modal" data-target="#addStudentModal">
+						Добавить ученика
+					</button>
+					</div>
+				  </div>
+				  <div class="col-md-4">
+					<div class="info-box mb-3 text-center" style="border: 1px solid #ddd; border-radius: 8px; ">
+						<button type="button" style="width: 100%; height: 100%;" class="main-btn-red" data-toggle="modal" data-target="#removeStudentModal">
+							Удалить ученика
+						</button>
+					</div>
+				  </div>
+				</div>
+				<!-- Modal for selecting and adding students -->
+				<div class="modal fade" id="addStudentModal" tabindex="-1" role="dialog" aria-labelledby="addStudentModalLabel" aria-hidden="true">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="addStudentModalLabel">Ученики, не состающие в этой группе</h5>
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+								<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+							<div class="modal-body">
+								<form method="POST" action="{% url 'add_student_to_group' %}">
+								{% csrf_token %}
+								<div class="form-group">
+									<label for="studentSelect">Выберите ученика:</label>
+									<select class="form-control" id="studentSelect" name="student">
+									{% for student in students_not_in_study_group %}
+										<option value="{{ student.id }}"> {{ student.last_name }} {{ student.first_name }}</option>
+									{% endfor %}
+									</select>
+								</div>
+								<input type="hidden" name="group_id" value="{{ group_id }}">
+								<br>
+								<button type="submit" class="main-btn quarter-button btn-block">Добавить</button>
+								</form>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Modal for removing students-->
+				<div class="modal fade" id="removeStudentModal" tabindex="-1" role="dialog" aria-labelledby="removeStudentModalLabel" aria-hidden="true">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="removeStudentModalLabel">Ученики, состающие в этой группе</h5>
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+								<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+							<div class="modal-body">
+								<form method="POST" action="{% url 'remove_student_from_group' %}">
+								{% csrf_token %}
+								<div class="form-group">
+									<label for="studentSelect">Выберите ученика:</label>
+									<select class="form-control" id="studentSelect" name="student">
+									{% for student in students %}
+										<option value="{{ student.id }}"> {{ student.last_name }} {{ student.first_name }} </option>
+									{% endfor %}
+									</select>
+								</div>
+								<input type="hidden" name="group_id" value="{{ group_id }}">
+								<br>
+								<button type="submit" class="main-btn-red quarter-button btn-block">Удалить</button>
+								</form>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				{% if lessons %}
+				<div class="table-responsive mt-3">
+					<div class="table-container" style="overflow-x: auto;">
+						<table class="table table-bordered">
+							<thead>
+								<tr>
+									<th>Ученик/Дата урока</th>
+									{% for lesson in lessons %}
+										<th class="text-center">
+											<a href="{% url 'lesson_single' lesson.id %}">
+												{{ lesson.date|date:"d.m.y"}}
+												({% if lesson.status == 'NP' %}НП{% elif lesson.status == 'P' %}П{% elif lesson.status == 'Z' %}З{% elif lesson.status == 'O' %}О{%endif%})
+											</a>
+											<br>
+											{% if lesson.homework %}
+												<small style="color: #47a5c9;" title="К уроку задано ДЗ">📝 ДЗ</small>
+											{% endif %}
+										</th>
+									{% endfor %}
+								</tr>
+							</thead>
+							<tbody>
+								{% for student in students %}
+									<tr>
+										<td class="text-center">
+											<!-- Добавляем ссылку на досье студента -->
+											<a href="{% url 'student_profile' student.id %}" style="text-decoration: none; color: inherit;">
+												{{ student.first_name }} {{student.last_name}}
+											</a>
+											<br>
+											<small>Средний: {{ student.avg_mark|default:"-"|floatformat:2 }}</small>
+											<br>
+											<small style="color: #28a745;" title="Выполнение ДЗ">
+												ДЗ: {% homework_completion_rate student lessons %}%
+											</small>
+											<br>
+											<!-- Добавляем иконку для перехода к досье -->
+											<a href="{% url 'student_profile' student.id %}" class="btn btn-sm" style="color: #47a5c9; font-size: 12px;" title="Посмотреть досье">
+												<i class="fa fa-user"></i> Досье
+											</a>
+										</td>
+										{% for lesson in lessons %}
+											<td class="editable text-center" data-subs="{% if lesson.status == 'Z' and user == lesson.substitute_teacher %}true{%else%}false{% endif%}" 
+											data-status="{{lesson.status}}" data-lesson="{{lesson.id}}" data-student="{{student.id}}">
+												<!-- Оценка -->
+												<div>{{ student|get_attendance_mark:lesson }}</div>
+												<!-- Статус ДЗ если урок с домашним заданием -->
+												{% if lesson.homework %}
+													<div style="font-size: 11px; margin-top: 2px;">
+														<span style="color: {% if student|get_homework_status:lesson == 'completed' %}#28a745{% elif student|get_homework_status:lesson == 'not_completed' %}#dc3545{% else %}#6c757d{% endif %};">
+															{{ student|get_homework_display:lesson }}
+														</span>
+													</div>
+												{% endif %}
+											</td>
+										{% endfor %}
+									</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+					</div>
+				</div>
+				
+				
+				{% else %}
+				<p class="text-center mt-5">В этой четверти по этому предмету пока еще уроков не добавлено</p>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+</section>
+
+{% endblock content %}
+
+{% block last %}
+
+<!-- фокус к текущей дате -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const currentDate = new Date(); // Текущая дата
+        const columns = document.querySelectorAll(".table thead th"); // Все заголовки столбцов
+        let closestColumn = null;
+        let minDifference = Infinity;
+
+        columns.forEach((column, index) => {
+            const dateText = column.innerText.trim().split(' ')[0]; // Извлекаем дату из заголовка
+            const [day, month, year] = dateText.split('.'); // Парсим дату в формате dd.mm.yy
+            const columnDate = new Date(`20${year}`, month - 1, day); // Преобразуем в объект Date
+            
+            const diff = Math.abs(currentDate - columnDate); // Разница между датами
+
+            if (diff < minDifference) {
+                minDifference = diff;
+                closestColumn = column;
+            }
+        });
+
+        if (closestColumn) {
+            // Прокручиваем к найденному столбцу
+            closestColumn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+        }
+    });
+</script>
+
+
+<!-- дефолт предмет -->
+<script>
+	$(document).ready(function(){
+		selected_subject_id = "{{selected_subject_id}}"
+		$('#subjectSelect option').each(function() {
+            var optionValue = $(this).val(); // Get the value of the current option
+            if(selected_subject_id == optionValue){
+				$('#subjectSelect').val(selected_subject_id)
+			}
+        });
+	});
+
+</script>
+
+<!-- оценки -->
+<script>
+	$(document).ready(function(){
+		$(document).on("click",".editable",function(){
+			var status = $(this).data("status")
+			var subs = $(this).data("subs")
+			
+			if ( status == 'NP' || subs == true) {
+				var value=$(this).text().match(/\d+/g)
+		        var input_type="number";
+		        var min = "0";
+		        var max = "10";
+		        var input="<input type='"+input_type+"' class='form-control mark-input input-data' value='"+value+"'>";		
+				var saveButton = "<button data-abs='ABS-NR' class='btn btn-outline-danger nb-button'>НБ</button>";
+				var cancelButton = "<button data-abs='ABS-R' class='btn btn-outline-danger nb-button'>НБ(П)</button>";
+				var buttonsContainer = "<div style='padding: 0px;' class='input-buttons col'>" + saveButton + cancelButton + "</div>"; // Wrap buttons in a Bootstrap column
+				var inputContainer = "<div class='input-mark col'>" + input + "</div>"; // Wrap buttons in a Bootstrap column
+				var inputAndButtons = "<div class='row'>" + inputContainer + buttonsContainer + "</div>"; // Wrap input and buttons in a Bootstrap row
+        		$(this).html(inputAndButtons);	
+		        // $(this).html(input);
+		        $(this).removeClass("editable")
+
+			}  
+    	});
+		
+		$(document).on("click",".nb-button",function(){
+			abs = $(this).data("abs")
+			var td = $(this).closest("td");
+			td.addClass("editable");
+
+			if(abs == 'ABS-R')
+				td.html('НБ(П)')
+			else if(abs=='ABS-NR')
+				td.html('НБ')
+			else
+				td.html(abs);
+			td.find(".input-buttons").remove();
+	        sendAbsToServer(td.data("lesson"), td.data("student"), abs);
+		});
+
+
+		$(document).on("blur",".input-data",function(){
+	        var value=$(this).val();
+	        var td = $(this).closest("td");
+			td.addClass("editable");
+			td.html(value);
+			td.find(".input-buttons").remove();
+			$(this).remove();
+	        sendToServer(td.data("lesson"), td.data("student"), value);
+   		});
+    	
+    	$(document).on("keypress",".input-data",function(e){
+	        var key=e.which;
+	    	if(key==13){
+			    var value=$(this).val();
+				var td = $(this).closest("td");
+			    td.addClass("editable");
+			    td.html(value);
+				td.find(".input-buttons").remove();
+			    $(this).remove();
+			    sendToServer(td.data("lesson"), td.data("student"), value);
+        	}
+    	});
+
+	    function sendToServer(lesson_id,student_id,value){
+	        $.ajax({
+	            url:"{% url 'add_mark' %}",
+	            type:"POST",
+	            data:{lesson_id:lesson_id,student_id:student_id,value:value},
+	        })
+	        .done(function(response){
+	            console.log(response);
+	        })
+	        .fail(function(){
+	           console.log("Error Occured");
+	        });
+	    }
+
+		function sendAbsToServer(lesson_id,student_id,abs){
+	        $.ajax({
+	            url:"{% url 'add_abs' %}",
+	            type:"POST",
+	            data:{lesson_id:lesson_id,student_id:student_id,abs:abs},
+	        })
+	        .done(function(response){
+	            console.log(response);
+	        })
+	        .fail(function(){
+	           console.log("Error Occured");
+	        });
+	    }
+
+	});
+</script>
+<script>
+	document.querySelectorAll('#navbarSupportedContent ul li')[3].querySelector('a').classList.add('active');
+</script>
+{% endblock last %}

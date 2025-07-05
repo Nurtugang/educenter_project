@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'quizer/css/quizer_results_style.css' %}">
+{% endblock head %}
+
+{% block content %}
+
+<section id="page-banner" class="pt-55 pb-60 bg_cover" data-overlay="8">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-banner-cont">
+                    <h3>Тестирование</h3>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'index' %}">Домашняя страница</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'quizer_choose' %}">Выбор теста</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Результаты</li>
+                        </ol>
+                    </nav>
+                </div>  <!-- page banner cont -->
+            </div>
+        </div> <!-- row -->
+    </div> <!-- container -->
+</section>
+
+
+<section class="pt-30 pb-120 gray-bg">
+    <div class="container">
+        <div class="results-label">Результаты свободного тестирования</div>
+        <p>Предмет: {{quiz_subject.name}}. Язык: {{quiz_subject.get_language_display}}</p>
+        <div class="table-container" style="overflow-x: auto;">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th class="text-center">Попытка</th>
+                        <th class="text-center">Результат</th>
+                        <th class="text-center">Баллы</th>
+                        <th class="text-center">Подробнее</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in results %}
+                    <tr>
+                        <td class="text-center">{{ result.attempt_number }}</td>
+                        <td class="text-center">
+                                <span class="score">{{ result.score }}</span>
+                                <span class="total">/ {{ result.total }} правильных</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="score">{{ result.total_points }}</span>
+                            <span class="total">/ {{ result.maximum_points }} баллов</span>
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-primary mr-2 btn-question view-result-btn" data-toggle="modal" data-target="#resModal_{{ result.attempt_number }}" >
+                                Посмотреть
+                            </button>
+                        </td>
+                    </tr>
+                    <div class="modal fade" id="resModal_{{ result.attempt_number }}" tabindex="-1" role="dialog" aria-labelledby="resModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title" id="resModalLabel">Работа над ошибками</h4>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    {% if result.score != result.total %}
+                                        {% for answer in result.answers %}
+                                            {% if not answer.is_correct %}
+                                            <div class="question-container">
+                                                <div class="question">
+                                                    <h5>
+                                                        {{ forloop.counter }}. {{ answer.question_text }} ({{answer.question_weight}} баллов)
+                                                    </h5>
+                                                </div>
+                                                <div class="question-image mt-3 mb-3 text-center">
+                                                    {% if answer.question_image %}
+                                                        <img src="{{ answer.question_image }}" class="img-fluid" style="max-height: 200px;">
+                                                    {% endif %}
+                                                </div>
+                                                <div class="answers">
+                                                    <p>Ваш ответ: 
+                                                        <span style="color: {% if answer.is_correct %}green{% else %}red{% endif %}">
+                                                            {{ answer.user_answer|default:"—" }}
+                                                        </span>
+                                                    </p>
+                                                    <p>Правильный ответ: 
+                                                        <span style="color: green">
+                                                            {{ answer.correct_answer }}
+                                                        </span>
+                                                    </p>
+                                                </div>
+                                                <br>                                                    
+                                            </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <h4>Поздравляем! Все ответы правильные 🎉</h4>
+                                    {% endif %}
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+                
+            </table>
+            
+            
+        </div>
+        
+        <div class="navigation-buttons">
+            <a href="{% url 'open_quizer_choose' %}" id="next" type="button" class="btn btn-primary">Назад к выборам тестов</a>
+        </div>
+    </div>
+    
+</section>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<script>
+    $(document).ready(function() {
+        $('.view-result-btn').click(function() {
+            var userAnswers = $(this).closest('tr').find('.user-answers').html();
+            console.log(userAnswers)
+            // $('#attemptNumber').text(incorrectAnswers);
+        });
+    });
+</script>
+
+<script>
+	{% if user.is_authenticated %}
+			{% if user.groups.all.first.name == 'Студент' %}	
+				document.querySelectorAll('#navbarSupportedContent ul li')[5].querySelector('a').classList.add('active');
+			{% else %}
+				document.querySelectorAll('#navbarSupportedContent ul li')[7].querySelector('a').classList.add('active');
+			{% endif %}
+	{% else %}
+		document.querySelectorAll('#navbarSupportedContent ul li')[4].querySelector('a').classList.add('active');
+	{% endif %}
+</script>
+
+{% endblock content %}

@@ -1,0 +1,478 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'quizer/css/quizer_page_style.css' %}">
+    <link rel="stylesheet" href="{% static 'open_quiz/css/open_quizer_page.css' %}">
+    <style>
+        .save-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 8px 15px;
+            background-color: #28a745;
+            color: white;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+        .save-status.show {
+            opacity: 1;
+        }
+        /* Стиль для кнопки вопроса, на который уже дан ответ */
+.modal-question-btn.answered {
+    background-color: #28a745;
+    color: white;
+}
+
+/* Стиль для текущего вопроса */
+.modal-question-btn.active {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+}
+
+/* Стили для модального окна с вопросами */
+.modal-questions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.modal-question-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid #ccc;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.modal-question-btn:hover {
+    background-color: #e9ecef;
+}
+
+/* Индикатор сохранения */
+.save-status {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+    </style>
+{% endblock head %}
+
+{% block content %}
+<section id="page-banner" class="pt-55 pb-60 bg_cover" data-overlay="8">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-banner-cont">
+                    <h3>Свободное тестирование</h3>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'index' %}">Домашняя страница</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'open_quizer_choose' %}">Выбор теста</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Cвободное тестирование</li>
+                        </ol>
+                    </nav>
+                </div>  <!-- page banner cont -->
+            </div>
+        </div> <!-- row -->
+    </div> <!-- container -->
+</section>
+<section class="pt-30 pb-30 gray-bg">
+    <div id="welcome-section" {% if not is_new_test %}style="display:none;"{% endif %}>
+    <img src="{% static 'quizer/images/door.webp' %}" alt="Welcome Image" class="welcome-image">
+        <label>Добро пожаловать</label>
+        <p>Предмет: {{quiz.name}}. Язык: {{quiz.get_language_display}}</p>
+        <p><span style="color:red">Будьте осторожны</span>, при нажатии на кнопку, начнется таймер.</p>
+        <p>Время сдачи теста: {{quiz.time_limit_minutes}} минут. Количество вопросов: {{ questions|length }}</p>
+        <div class="button-container">
+            <button class="btn btn-primary btn-question" onclick="startQuiz()">Начать тест</button>
+            <button class="btn btn-primary btn-question" onclick="redirectToResults({{quiz_id}})">Посмотреть результаты</button>
+        </div>  
+    </div>
+
+    <div id="quiz-section" {% if is_new_test %}style="display:none;"{% endif %}>
+        <div id="save-status" class="save-status">Прогресс сохранен</div>
+        <div class="container">
+            <div class="row">
+                <div class="quiz-bg col-lg-12 mb-3" style="background-color: white; padding: 30px; padding-left: 60px; padding-right:60px">
+                <div class="quiz-timer">
+                    Оставшееся время: <span id="timer"></span>
+                    </div>
+                    <form id="quiz-form" method="post" action="{% url 'open_testing_handle' quiz.id %}">
+                        {% csrf_token %}
+                        {% for question in questions %}
+                        <div class="question-container mb-3" id="question-{{ forloop.counter0 }}" style="display: none;">
+                            <div class="question">
+                                {{forloop.counter}}. {{ question.text }} ({{question.weight}} баллов)
+                            </div>
+                            <div class="question-image mt-3 mb-3">
+                            {% if question.image %}
+                                <img src="{{ question.image.url }}" class="img-fluid" style="max-height: 300px;">
+                            {% endif %}
+                            
+                            </div>
+                            <input type="text" name="question_{{ question.id }}" id="answer_{{ question.id }}" class="form-control answer-input">
+                        </div>
+                        {% endfor %}
+
+                        <div class="navigation-buttons">
+                            <button class="btn btn-primary btn-question" type="button" onclick="changeQuestion(-1)">Предыдущий вопрос</button>
+                            <button class="btn btn-primary btn-finish" id="finish" type="submit" onclick="disableSubmitButton()">Закончить тест</button>
+                            <button class="btn btn-primary" type="button" onclick="showModal()">Все вопросы</button>
+                            <button class="btn btn-primary btn-question" type="button" onclick="changeQuestion(1)">Следующий вопрос</button>
+                        </div>
+
+                    </form>
+                    <!-- Модальное окно для навигации по вопросам -->
+                    <div id="questionModal" class="modal" style="display:none;">
+                        <div class="modal-content">
+                            <span class="close-button">&times;</span>
+                            <h3 class="modal-title">Выберите вопрос</h3>
+                            <p class="modal-description">Вы можете перейти к любому вопросу, кликнув по номеру</p>
+                            <div class="modal-questions">
+                                {% for question in questions %}
+                                <button class="modal-question-btn" id="question-btn-{{forloop.counter0}}" onclick="goToQuestion({{forloop.counter0}})">
+                                    {{forloop.counter}}
+                                </button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script type="text/javascript">
+    var currentQuestionIndex = {% if current_question_index %}{{ current_question_index }}{% else %}0{% endif %};
+    var totalQuestions = {{ questions|length }}; 
+    var questionIds = [];
+    
+    {% for question in questions %}
+        questionIds.push({{ question.id }});
+    {% endfor %}
+    
+    // Инициализируем оставшееся время
+    var timeLeft = {% if remaining_seconds %}{{ remaining_seconds }}{% else %}parseInt('{{quiz.time_limit_minutes|safe}}')*60{% endif %};
+    var timerFinished = false;
+    var progressSaved = false;
+    var saveInterval = null;
+    var timerId = null;
+    
+    // Загружаем временные ответы, если они есть
+    {% if temp_answers %}
+    var tempAnswers = {{ temp_answers|safe }};
+    {% else %}
+    var tempAnswers = {};
+    {% endif %}
+
+    console.log("Initial state:");
+    console.log("Question IDs:", questionIds);
+    console.log("Current question index:", currentQuestionIndex);
+    console.log("Total questions:", totalQuestions);
+    console.log("Temporary answers:", tempAnswers);
+    console.log("Time left:", timeLeft);
+
+    // Проверка текстовых полей
+    function checkAllFieldsFilled() {
+        const finishButton = document.getElementById('finish');
+        const textInputs = document.querySelectorAll('.answer-input');
+        let allFilled = true;
+        
+        textInputs.forEach(input => {
+            if (input.value.trim() === '') {
+                allFilled = false;
+            }
+        });
+
+        finishButton.disabled = !allFilled;
+    }
+        
+    function startQuiz() {
+        // Hide the welcome message and start button
+        document.getElementById('welcome-section').style.display = 'none';
+        // Show the quiz section
+        document.getElementById('quiz-section').style.display = 'block';
+        // Start the timer
+        startTimer();
+        // Показываем первый вопрос
+        showQuestion(currentQuestionIndex);
+        // Начинаем автосохранение
+        startAutoSave();
+    }
+
+    function startTimer() {
+        var timerElement = document.getElementById('timer');
+        var finishButton = document.getElementById('finish');
+        
+        timerId = setInterval(function() {
+            var minutes = parseInt(timeLeft / 60, 10);
+            var seconds = parseInt(timeLeft % 60, 10);
+
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+            seconds = seconds < 10 ? "0" + seconds : seconds;
+
+            timerElement.textContent = minutes + ":" + seconds;
+
+            if (--timeLeft < 0) {
+                clearInterval(timerId);
+                timerElement.textContent = '00:00';
+                finishButton.disabled = true;
+                timerFinished = true;
+                saveProgress(true); // Последнее сохранение при истечении времени
+            }
+        }, 1000);
+    }
+    
+    // Скрыть все другие вопросы, и показать текущий вопрос при навигации
+    function showQuestion(index) {
+        console.log("Showing question at index:", index);
+        
+        document.querySelectorAll('.question-container').forEach(function(elem) {
+            elem.style.display = 'none';
+        });
+        
+        currentQuestion = document.getElementById('question-' + index);
+        if (currentQuestion) {
+            currentQuestion.style.display = 'block';
+            currentQuestionIndex = index;
+            
+            // Заполняем сохраненный ответ, если он есть
+            if (index < questionIds.length) {
+                var currentQuestionId = questionIds[index];
+                console.log("Current question ID:", currentQuestionId);
+                
+                if (tempAnswers[currentQuestionId]) {
+                    console.log("Found saved answer:", tempAnswers[currentQuestionId]);
+                    var answerInput = document.getElementById('answer_' + currentQuestionId);
+                    if (answerInput) {
+                        answerInput.value = tempAnswers[currentQuestionId];
+                    } else {
+                        console.log("Answer input not found for question ID:", currentQuestionId);
+                    }
+                }
+            } else {
+                console.log("Index out of range:", index, "vs", questionIds.length);
+            }
+        } else {
+            console.log("Question container not found for index:", index);
+        }
+        
+        updateAnsweredQuestions();
+    }
+
+    // Смена вопроса, определить индекс переходимого вопроса
+    function changeQuestion(step) {
+        // Сохраняем текущий ответ
+        saveCurrentAnswer();
+        
+        var newIndex = currentQuestionIndex + step;
+        if (newIndex < 0) {
+            newIndex = 0;
+        } 
+        else if (newIndex >= totalQuestions) {
+            newIndex = totalQuestions - 1;
+        }
+        showQuestion(newIndex);
+    }
+    
+    // Сохранить текущий ответ во временное хранилище
+    function saveCurrentAnswer() {
+        if (currentQuestionIndex >= 0 && currentQuestionIndex < questionIds.length) {
+            var questionId = questionIds[currentQuestionIndex];
+            var answerInput = document.getElementById('answer_' + questionId);
+            if (answerInput) {
+                tempAnswers[questionId] = answerInput.value;
+                console.log("Saved answer for question ID:", questionId, "value:", answerInput.value);
+            } else {
+                console.log("Answer input not found for question ID:", questionId);
+            }
+        } else {
+            console.log("Current question index out of range:", currentQuestionIndex);
+        }
+    }
+    
+    // Обновить отметки о заполненных вопросах
+    function updateAnsweredQuestions() {
+        document.querySelectorAll('.modal-question-btn').forEach(function(btn, index) {
+            if (index < questionIds.length) {
+                var questionId = questionIds[index];
+                if (tempAnswers[questionId] && tempAnswers[questionId].trim() !== '') {
+                    btn.classList.add('answered');
+                } else {
+                    btn.classList.remove('answered');
+                }
+            }
+        });
+        
+        checkAllFieldsFilled();
+    }
+
+    // При загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("DOM loaded");
+        
+        // Если это продолжение теста, сразу показываем секцию теста
+        {% if not is_new_test %}
+            console.log("Continuing test...");
+            document.getElementById('welcome-section').style.display = 'none';
+            document.getElementById('quiz-section').style.display = 'block';
+            
+            // Заполняем сохраненные ответы
+            for (var questionId in tempAnswers) {
+                var input = document.getElementById('answer_' + questionId);
+                if (input) {
+                    input.value = tempAnswers[questionId];
+                    console.log("Restored answer for question ID:", questionId, "value:", tempAnswers[questionId]);
+                } else {
+                    console.log("Input not found for question ID:", questionId);
+                }
+            }
+            
+            startTimer();
+            showQuestion(currentQuestionIndex);
+            startAutoSave();
+            updateAnsweredQuestions();
+        {% endif %}
+        
+        // Добавляем обработчики ввода для всех полей ответов
+        document.querySelectorAll('.answer-input').forEach(input => {
+            input.addEventListener('input', function() {
+                var id = this.id.split('_')[1];
+                tempAnswers[id] = this.value;
+                updateAnsweredQuestions();
+            });
+        });
+    });
+
+    // Функция для показа модального окна
+    function showModal() {
+        saveCurrentAnswer();
+        updateAnsweredQuestions();
+        document.getElementById('questionModal').style.display = 'block';
+    }
+
+    // Функция для закрытия модального окна
+    document.querySelector('.close-button').addEventListener('click', function() {
+        document.getElementById('questionModal').style.display = 'none';
+    });
+
+    // Закрытие модального окна при клике на фон 
+    document.getElementById('questionModal').addEventListener('click', function(event) {
+        if (event.target === this) {
+         this.style.display = 'none';
+        }
+    });
+
+    // Функция для перехода к вопросу
+    function goToQuestion(index) {
+        saveCurrentAnswer();
+        document.querySelectorAll('.modal-question-btn').forEach(btn => btn.classList.remove('active'));
+        var btn = document.getElementById('question-btn-' + index);
+        if (btn) {
+            btn.classList.add('active');
+        }
+
+        showQuestion(index);
+        document.getElementById('questionModal').style.display = 'none';
+    }
+
+    // Редирект к результатам
+    function redirectToResults(quiz_id) {
+        window.location.href = "{% url 'open_quizer_results' quiz_id %}";
+    }
+
+    // Отключить кнопку завершения теста, после первого нажатия
+    function disableSubmitButton() {
+        saveCurrentAnswer();
+        var submitButton = document.getElementById("finish");
+        var form = document.getElementById("quiz-form");
+        
+        // Остановить автосохранение
+        if (saveInterval) {
+            clearInterval(saveInterval);
+        }
+        
+        form.submit();
+        submitButton.disabled = true;
+        submitButton.innerText = "Подождите...";
+        submitButton.classList.add("disabled");
+    }
+    
+    // Автосохранение прогресса
+    function startAutoSave() {
+        // Сохраняем каждые 30 секунд
+        saveInterval = setInterval(function() {
+            saveProgress();
+        }, 30000);
+        
+        // Также сохраняем при уходе со страницы
+        window.addEventListener('beforeunload', function(e) {
+            saveProgress(true);
+        });
+    }
+    
+    // Функция для сохранения прогресса
+    function saveProgress(async = false) {
+        saveCurrentAnswer();
+        
+        var data = {
+            remaining_seconds: timeLeft,
+            current_question_index: currentQuestionIndex,
+            temp_answers: tempAnswers,
+            question_ids: questionIds
+        };
+        
+        console.log("Saving progress:", data);
+        
+        // Показываем индикатор сохранения
+        var saveStatus = document.getElementById('save-status');
+        
+        fetch("{% url 'save_test_progress' quiz.id %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Save response:", data);
+            if (data.status === 'success') {
+                saveStatus.classList.add('show');
+                setTimeout(function() {
+                    saveStatus.classList.remove('show');
+                }, 2000);
+                progressSaved = true;
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка сохранения:', error);
+        });
+    }
+</script>
+
+
+
+{% endblock content %}
+
+{% block last %}
+<script>
+    {% if user.is_authenticated %}
+            {% if user.groups.all.first.name == 'Студент' %}	
+                document.querySelectorAll('#navbarSupportedContent ul li')[5].querySelector('a').classList.add('active');
+            {% else %}
+                document.querySelectorAll('#navbarSupportedContent ul li')[7].querySelector('a').classList.add('active');
+            {% endif %}
+    {% else %}
+        document.querySelectorAll('#navbarSupportedContent ul li')[4].querySelector('a').classList.add('active');
+    {% endif %}
+</script>
+{% endblock last %}

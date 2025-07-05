@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+
+    .expression-list {
+        counter-reset: expression-counter;
+    }
+    .expression-list, .answers-list {
+        list-style-type: none;
+        padding: 0;
+        font-family: 'Patrick Hand', cursive;
+    }
+    .expression-list li, .answers-list li {
+        background: white;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-sizing: border-box;
+        position: relative;
+    }
+    .expression-list li {
+        counter-increment: expression-counter;
+        margin-bottom: 17.2333px;
+    }
+    .expression-list li::before {
+        content: counter(expression-counter);
+        position: absolute;
+        left: -25px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #47a5c9;
+        color: white;
+        border-radius: 50%;
+        width: 25px;
+        height: 25px;
+        text-align: center;
+        font-size: 16px;
+        font-weight: bold;
+    }
+    .answers-list li {
+        padding: 0;
+        margin-bottom: 15px;
+        display: flex; /* Use flexbox to place input and span on the same line */
+    align-items: center;
+    }
+    .answers-list .feedback-icon {
+    margin-left: 10px; /* Add spacing between input and icon */
+}
+    .answers-list li input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-sizing: border-box;
+        font-weight: 600;
+    }
+    .btn {
+        cursor: pointer;
+        font-family: 'Patrick Hand', cursive;
+        font-size: 18px;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        box-shadow: 0 4px #222;
+        margin-right: 10px;
+    }
+    .btn-check-answer {
+        background: #47a5c9;
+    }
+    .btn-next-task {
+        background: #47a5c9;
+    }
+    .btn-next-task:hover {
+        background-color: #f2a07a;
+        box-shadow: 0 6px #222;
+        position: relative;
+        top: -2px;
+    }
+    .btn-check-answer:hover {
+        background-color: limegreen;
+        box-shadow: 0 6px #222;
+        position: relative;
+        top: -2px;
+    }
+    .correct-answer {
+        border: 2px solid limegreen;
+    }
+    .incorrect-answer {
+        border: 2px solid red;
+    }
+    @media (max-width: 768px) {
+        .col-md-6, .col-md-12 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+    }
+</style>
+
+<section class="pt-30 pb-120 gray-bg">
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-lg-12 mb-3" style="background-color: white; padding: 30px;">
+                <h2 class="text-center mb-4">Тренажер уравнений</h2>
+                <form id="equations-form">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ol id="equation-list" class="expression-list mb-4"></ol>
+                        </div>
+                        <div class="col-md-6">
+                            <ul id="answers-list" class="answers-list"></ul>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 text-center">
+                            <button id="check-btn" type="button" class="btn btn-primary mr-2">Проверить ответ</button>
+                            <button id="next-btn" type="button" class="btn btn-primary">Следующие задачи</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock content %}
+
+{% block last %}
+<script>
+    var initial_equations = []
+    var unformatted_equations = []
+    $(document).ready(function () {
+        // Загрузка уравнений
+        function loadNewEquations() {
+            $.ajax({
+                url: "{% url 'equations_generator' %}",
+                method: 'GET',
+                success: function (data) {
+                    initial_equations = data.formatted_equations;
+                    unformatted_equations = data.equations;
+                    $('#equation-list').empty();
+                    $('#answers-list').empty();
+
+                    $.each(data.formatted_equations, function (index, equation) {
+                        $('#equation-list').append('<li>' + equation + '</li>');
+                        $('#answers-list').append('<li><input type="text" name="answer_' + index + '" required><span class="feedback-icon"></span></li>');
+                    });
+                },
+                error: function () {
+                    console.error('Ошибка при загрузке уравнений');
+                }
+            });
+        }
+
+        // Проверка ответов
+        $('#check-btn').on('click', function () {
+            var formData = {
+                equations: unformatted_equations,
+                answers: []
+            };
+
+            $('#answers-list input').each(function (index, element) {
+                formData.answers.push($(element).val().trim());
+            });
+
+            $.ajax({
+                url: "{% url 'equations_checker' %}",
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function (result) {
+                    var answersList = document.querySelectorAll('#answers-list input');
+                    result.results.forEach(function (isCorrect, index) {
+                        if (isCorrect) {
+                            answersList[index].style.border = 'solid 2px limegreen';
+                            answersList[index].nextElementSibling.innerHTML = '<i style="color:limegreen" class="fa fa-check"></i>';
+                        } else {
+                            answersList[index].style.border = 'solid 2px red';
+                            answersList[index].nextElementSibling.innerHTML = '<i style="color:red" class="fa fa-close"></i>';
+                        }
+                    });
+                },
+                error: function () {
+                    console.error('Ошибка при проверке ответов');
+                }
+            });
+        });
+
+        // Генерация новых уравнений
+        $('#next-btn').on('click', function () {
+            loadNewEquations();
+        });
+
+        // Инициализация
+        loadNewEquations();
+    });
+</script>
+{% endblock last %}

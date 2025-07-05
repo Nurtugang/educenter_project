@@ -1,0 +1,306 @@
+{% load static %}
+<style>
+  .datepicker,
+  .table-condensed {
+    width: 410px;
+    height: 410px;
+    font-size: 20px;
+  }
+  
+  .date-selection-container {
+    margin-bottom: 20px;
+    padding: 0;
+    background-color: transparent;
+  }
+  
+  .mode-selection {
+    margin-bottom: 15px;
+  }
+  
+  .mode-selection label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: normal;
+    cursor: pointer;
+  }
+  
+  .mode-selection input[type="radio"] {
+    margin-right: 8px;
+  }
+  
+  .range-mode-fields {
+    display: none;
+    margin-top: 15px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+  }
+  
+  .range-mode-fields.active {
+    display: block;
+  }
+  
+  .date-range-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  
+  .date-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .date-input-group label {
+    font-weight: 500;
+    font-size: 13px;
+    color: #333;
+  }
+  
+  .date-input-group input {
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  .weekday-selection {
+    margin-bottom: 20px;
+  }
+  
+  .weekday-selection > label {
+    font-weight: 500;
+    margin-bottom: 10px;
+    display: block;
+    color: #333;
+  }
+  
+  .weekday-checkboxes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+  }
+  
+  .weekday-checkboxes label {
+    display: flex;
+    align-items: center;
+    font-weight: normal;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  
+  .weekday-checkboxes input[type="checkbox"] {
+    margin-right: 8px;
+  }
+  
+  .generate-dates-btn {
+    background-color: #007cba;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  
+  .generate-dates-btn:hover {
+    background-color: #005a87;
+  }
+  
+  .selected-dates-display {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  .selected-dates-display strong {
+    color: #155724;
+  }
+  
+  .manual-date-picker {
+    margin-top: 10px;
+  }
+</style>
+
+<link rel="stylesheet" href="{% static 'date/bootstrap-multiselect.css' %}" integrity="sha512-tlP4yGOtHdxdeW9/VptIsVMLtgnObNNr07KlHzK4B5zVUuzJ+9KrF86B/a7PJnzxEggPAMzoV/eOipZd8wWpag==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="{% static 'date/bootstrap-datepicker.min.css' %}" integrity="sha512-34s5cpvaNG3BknEWSuOncX28vz97bRI59UnVtEEpFX536A7BtZSJHsDyFoCl8S7Dt2TPzcrCEoHBGeM4SUBDBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<div class="date-selection-container">
+  <div class="mode-selection">
+    <label>
+      <input type="radio" name="date_selection_mode" value="manual" checked> 
+      Выбрать даты вручную
+    </label>
+    <label>
+      <input type="radio" name="date_selection_mode" value="range"> 
+      Выбрать по диапазону и дням недели
+    </label>
+  </div>
+  
+  <!-- Поля для выбора по диапазону -->
+  <div class="range-mode-fields" id="range-mode-fields">
+    <div class="date-range-row">
+      <div class="date-input-group">
+        <label for="start-date">Начальная дата:</label>
+        <input type="date" id="start-date" name="start_date">
+      </div>
+      
+      <div class="date-input-group">
+        <label for="end-date">Конечная дата:</label>
+        <input type="date" id="end-date" name="end_date">
+      </div>
+    </div>
+    
+    <div class="weekday-selection">
+      <label>Выберите дни недели:</label>
+      <div class="weekday-checkboxes">
+        <label><input type="checkbox" name="weekdays" value="0"> Понедельник</label>
+        <label><input type="checkbox" name="weekdays" value="1"> Вторник</label>
+        <label><input type="checkbox" name="weekdays" value="2"> Среда</label>
+        <label><input type="checkbox" name="weekdays" value="3"> Четверг</label>
+        <label><input type="checkbox" name="weekdays" value="4"> Пятница</label>
+        <label><input type="checkbox" name="weekdays" value="5"> Суббота</label>
+        <label><input type="checkbox" name="weekdays" value="6"> Воскресенье</label>
+      </div>
+    </div>
+    
+    <button type="button" class="generate-dates-btn" id="generate-dates-btn">
+      Сгенерировать даты
+    </button>
+    
+    <div class="selected-dates-display" id="selected-dates-display" style="display: none;">
+      <strong>Выбранные даты:</strong>
+      <div id="dates-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Оригинальный мультивыбор дат -->
+<div class="input-group multi-date-picker-widget manual-date-picker" id="manual-date-picker">
+  <input type="text" class="form-control" data-provide="datepicker" data-date-multidate="true" data-date-container='.multi-date-picker-widget' multiple>
+  <span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
+</div>
+
+<script src="{% static 'date/jquery_3.6.4.min.js' %}"></script>
+<script src="{% static 'date/bootstrap-datepicker.min.js' %}" integrity="sha512-LsnSViqQyaXpD4mBBdRYeP6sRwJiJveh2ZIbW41EBrNmKxgr/LFZIiWT6yr+nycvhvauz8c2nYMhrP80YhG7Cw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="{% static 'date/bootstrap-datepicker.ru.min.js' %}" charset="UTF-8"></script>
+<script src="{% static 'date/bootstrap-multiselect.js' %}" integrity="sha512-YwbKCcfMdqB6NYfdzp1NtNcopsG84SxP8Wxk0FgUyTvgtQe0tQRRnnFOwK3xfnZ2XYls+rCfBrD0L2EqmSD2sA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script>
+var $j = jQuery.noConflict();
+
+// Находим форму
+const form = document.querySelector('#lesson_form') || 
+          document.querySelector('#semester1_form') || 
+          document.querySelector('#semester2_form') || 
+          document.querySelector('#semester3_form') || 
+          document.querySelector('#semester4_form');
+
+// Создаем скрытое поле для хранения выбранных дат
+const hiddenInput = document.createElement('input');
+hiddenInput.type = 'hidden';
+hiddenInput.name = 'tmp';
+hiddenInput.value = 'hidden_field_value';
+hiddenInput.id = 'tmp_id';
+form.appendChild(hiddenInput);
+
+// Функция для генерации дат по диапазону и дням недели
+function generateDatesByRange() {
+  const startDate = document.getElementById('start-date').value;
+  const endDate = document.getElementById('end-date').value;
+  const selectedWeekdays = Array.from(document.querySelectorAll('input[name="weekdays"]:checked'))
+    .map(cb => parseInt(cb.value));
+  
+  if (!startDate || !endDate || selectedWeekdays.length === 0) {
+    alert('Пожалуйста, выберите начальную дату, конечную дату и хотя бы один день недели');
+    return;
+  }
+  
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const generatedDates = [];
+  
+  // Проходим по каждому дню в диапазоне
+  for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+    const weekday = date.getDay();
+    // В JavaScript воскресенье = 0, понедельник = 1, etc.
+    // Приводим к нашему формату (понедельник = 0)
+    const adjustedWeekday = weekday === 0 ? 6 : weekday - 1;
+    
+    if (selectedWeekdays.includes(adjustedWeekday)) {
+      const dateString = date.toISOString().split('T')[0];
+      generatedDates.push(dateString);
+    }
+  }
+  
+  // Обновляем скрытое поле
+  const tmpField = document.getElementById('tmp_id');
+  tmpField.value = generatedDates.join(',');
+  
+  // Показываем выбранные даты
+  displaySelectedDates(generatedDates);
+  
+  console.log('Сгенерированные даты:', generatedDates);
+}
+
+// Функция для отображения выбранных дат
+function displaySelectedDates(dates) {
+  const displayDiv = document.getElementById('selected-dates-display');
+  const datesList = document.getElementById('dates-list');
+  
+  if (dates.length > 0) {
+    const formattedDates = dates.map(date => {
+      const d = new Date(date);
+      return d.toLocaleDateString('ru-RU');
+    }).join(', ');
+    
+    datesList.innerHTML = `${formattedDates} (всего: ${dates.length} дат)`;
+    displayDiv.style.display = 'block';
+  } else {
+    displayDiv.style.display = 'none';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Обработка переключения режимов
+  const modeRadios = document.querySelectorAll('input[name="date_selection_mode"]');
+  const rangeFields = document.getElementById('range-mode-fields');
+  const manualPicker = document.getElementById('manual-date-picker');
+  
+  modeRadios.forEach(radio => {
+    radio.addEventListener('change', function() {
+      if (this.value === 'range') {
+        rangeFields.classList.add('active');
+        manualPicker.style.display = 'none';
+      } else {
+        rangeFields.classList.remove('active');
+        manualPicker.style.display = 'block';
+      }
+    });
+  });
+  
+  // Обработка генерации дат
+  document.getElementById('generate-dates-btn').addEventListener('click', generateDatesByRange);
+  
+  // Инициализация оригинального datepicker
+  const datepickerInput = $j('.multi-date-picker-widget input');
+  datepickerInput.datepicker({
+    language: 'ru', 
+    format: 'yyyy-mm-dd', 
+    orientation: "auto"
+  }).on('changeDate', function() {
+    const selectedDates = datepickerInput.val();
+    const tmpField = document.getElementById('tmp_id');
+    tmpField.value = selectedDates;
+    console.log('Выбранные даты вручную:', selectedDates);
+  });
+});
+</script>

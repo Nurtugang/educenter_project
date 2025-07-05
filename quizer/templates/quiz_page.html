@@ -1,0 +1,301 @@
+    {% extends "base.html" %}
+    {% load static %}
+    {% load custom_filters %}
+    
+    {% block head %}
+        <link rel="stylesheet" href="{% static 'quizer/css/quizer_page_style.css' %}">
+        <link rel="stylesheet" href="{% static 'open_quiz/css/open_quizer_page.css' %}">
+    {% endblock head %}
+
+    {% block content %}
+
+    <section id="page-banner" class="pt-55 pb-60 bg_cover" data-overlay="8">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="page-banner-cont">
+                        <h3>Тестирование</h3>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="{% url 'index' %}">Домашняя страница</a></li>
+                                <li class="breadcrumb-item"><a href="{% url 'quizer_choose' %}">Выбор теста</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Тестирование</li>
+                            </ol>
+                        </nav>
+                    </div>  <!-- page banner cont -->
+                </div>
+            </div> <!-- row -->
+        </div> <!-- container -->
+    </section>
+
+    <section class="pt-30 pb-30 gray-bg">
+
+        <div id="welcome-section">
+        <img src="{% static 'quizer/images/door.webp' %}" alt="Welcome Image" class="welcome-image">
+            <label>Добро пожаловать</label>
+            <strong>
+                {% if messages %}
+                    <ul class="messages">
+                        {% for message in messages %}
+                            <div class="alert alert-info">
+                            <strong>Внимание!</strong> {{message}}
+                            </div>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </strong>
+            <p>Предмет: {{subject}}. Язык: {{language}}</p>
+            <p><span style="color:red">Будьте осторожны</span>, при нажатии на кнопку, начнется таймер.</p>
+            <p>Время сдачи теста: {{time_limit_minutes}} минут. Количество вопросов: 20</p>
+            <div class="row justify-content-center">
+                <button class="btn btn-primary btn-question" onclick="startQuiz()">Начать тест</button>
+                {% if not is_student %}
+                <form action="{% url 'generate-random-test' quiz_id=quiz_id %}" method="post">
+                    {% csrf_token %}
+                    <button id="previous" type="submit" class="btn btn-primary mr-2 btn-question"><i class="fa fa-file-word-o" aria-hidden="true"></i> Генерация рандомного теста</button>
+                </form>
+                {% endif %}
+                <button class="btn btn-primary btn-question" onclick="redirectToResults({{quiz_id}})">Посмотреть результаты</button>
+            </div>  
+        </div>
+
+        <div id="quiz-section" style="display:none;">
+            <div class="container">
+                <div class="row">
+                    <div class="quiz-bg col-lg-12 mb-3" style="background-color: white; padding: 30px; padding-left: 6  0px; padding-right:60px">
+                    <div class="quiz-timer">
+                        Оставшееся время: <span id="timer"></span>
+                        </div>
+                        <form id="quiz-form" method="post" action="{% url 'testing_handle' quiz_id %}">
+                            {% csrf_token %}
+                            
+                            {% for question in questions %}
+                            <div class="question-container" id="question-{{ forloop.counter0 }}" style="display: none;">
+                                <div class="question">
+                                    {{forloop.counter}}. {{ question.text }}
+                                </div>
+                                <div class="question-image mt-3 mb-3">
+                                {% if question.image %}
+                                    <img src="{{ question.image.url }}" class="img-fluid">
+                                {% endif %}
+                                
+                                </div>
+                                <ul class="answer-options">
+                                    {% if shuffle_options %}
+                                        {% for option in question.options.all|shuffle %}
+                                            <li>
+                                                <input type="radio" id="option{{ option.id }}" name="question_{{ question.id }}" value="{{ option.id }}" class="custom-radio">
+                                                <label for="option{{ option.id }}">{{ option.text }}</label>
+                                            </li>
+                                        {% endfor %}
+                                    {% else %}
+                                        {% for option in question.options.all|dictsort:"text" %}
+                                        <li>
+                                            <input type="radio" id="option{{ option.id }}" name="question_{{ question.id }}" value="{{ option.id }}" class="custom-radio">
+                                            <label for="option{{ option.id }}">{{ option.text }}</label>
+                                        </li>
+                                        {% endfor %}
+                                    {% endif %}
+                                    
+                                </ul>
+                            </div>
+                            {% endfor %}
+
+                            <div class="navigation-buttons">
+                                <button class="btn btn-primary btn-question" type="button" onclick="changeQuestion(-1)">Предыдущий вопрос</button>
+                                <button class="btn btn-primary btn-finish" id="finish" type="submit" disabled onclick="disableSubmitButton()">Закончить тест</button>
+                                <button class="btn btn-primary" type="button" onclick="showModal()">Все вопросы</button>
+
+                                <button class="btn btn-primary btn-question" type="button" onclick="changeQuestion(1)">Следующий вопрос</button>
+                            </div>
+
+                        </form>
+                        <!-- Модальное окно для навигации по вопросам -->
+                        <div id="questionModal" class="modal" style="display:none;">
+                            <div class="modal-content">
+                                <span class="close-button">&times;</span>
+                                <h3 class="modal-title">Выберите вопрос</h3>
+                                <p class="modal-description">Вы можете перейти к любому вопросу, кликнув по номеру</p>
+                                <div class="modal-questions">
+                                    {% for question in questions %}
+                                    <button class="modal-question-btn" id="question-btn-{{forloop.counter0}}" onclick="goToQuestion({{forloop.counter0}})">
+                                        {{forloop.counter}}
+                                    </button>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <script type="text/javascript">
+        var questionsJson = '{{ questions_json|safe }}';
+
+        try {
+            var questions = JSON.parse(questionsJson);
+        } catch (error) {
+            console.error('Error parsing JSON:', error);
+        }
+        var currentQuestionIndex = 0;
+        var totalQuestions = {{ questions|length }};
+        var timeLeft = parseInt('{{time_limit_minutes|safe}}')*60; // Example for 10 minutes
+        var timerFinished = false;
+
+        function redirectToResults(quiz_id) {
+            window.location.href = "{% url 'quiz_results' quiz_id %}";
+        }
+        
+        function startQuiz() {
+            // Hide the welcome message and start button
+            document.getElementById('welcome-section').style.display = 'none';
+
+            // Show the quiz section
+            document.getElementById('quiz-section').style.display = 'block';
+
+            // Enable the finish button
+            // document.getElementById('finish').disabled = false;
+
+            // Start the timer
+            startTimer();
+        }
+
+        function startTimer() {
+            var timerElement = document.getElementById('timer');
+            var finishButton = document.getElementById('finish');
+            var timerId = setInterval(function() {
+                var minutes = parseInt(timeLeft / 60, 10);
+                var seconds = parseInt(timeLeft % 60, 10);
+
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                timerElement.textContent = minutes + ":" + seconds;
+
+                if (--timeLeft < 0) {
+                    clearInterval(timerId);
+                    timerElement.textContent = '00:00';
+                    // Disable the finish button when time is up
+                    finishButton.disabled = true;
+                    timerFinished = true
+                }
+            }, 1000);
+        }
+        
+
+
+    function showQuestion(index) {
+        // Hide all questions
+        document.querySelectorAll('.question-container').forEach(function(elem) {
+            elem.style.display = 'none';
+        });
+
+        // Show the current question
+        var currentQuestion = document.getElementById('question-' + index);
+        if (currentQuestion) {
+            currentQuestion.style.display = 'block';
+        }
+    }
+
+    function changeQuestion(step) {
+        currentQuestionIndex += step;
+
+        // Ensure the index stays within the range
+        if (currentQuestionIndex < 0) {
+            currentQuestionIndex = 0;
+        } else if (currentQuestionIndex >= totalQuestions) {
+            currentQuestionIndex = totalQuestions - 1;
+        }
+
+        showQuestion(currentQuestionIndex);
+    }
+
+    function countCheckedRadios() {
+        var customRadios = document.getElementsByClassName('custom-radio');
+        var checkedCount = 0;
+
+        for (var i = 0; i < customRadios.length; i++) {
+            if (customRadios[i].checked) {
+                checkedCount++;
+            }
+        }
+        if(checkedCount == totalQuestions && timerFinished == false) {
+            document.getElementById('finish').disabled = false;
+        } 
+        // console.log("Checked radio buttons: " + checkedCount); // For debugging
+        // Other actions based on checkedCount can be added here
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var customRadios = document.getElementsByClassName('custom-radio');
+
+        for (var i = 0; i < customRadios.length; i++) {
+            customRadios[i].addEventListener('change', countCheckedRadios);
+        }
+    });
+
+
+
+
+    // Initially show the first question
+    document.addEventListener('DOMContentLoaded', function() {
+        showQuestion(currentQuestionIndex);
+    });
+
+
+    function showModal() {
+        document.getElementById('questionModal').style.display = 'block';
+    }
+
+    // Функция для закрытия модального окна
+    document.querySelector('.close-button').addEventListener('click', function() {
+        document.getElementById('questionModal').style.display = 'none';
+    });
+
+    // Закрытие модального окна при клике на фон 
+    document.getElementById('questionModal').addEventListener('click', function(event) {
+        if (event.target === this) {
+         this.style.display = 'none';
+        }
+    });
+
+    // Функция для перехода к вопросу
+    function goToQuestion(index) {
+        document.querySelectorAll('.modal-question-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`.modal-question-btn:nth-child(${index + 1})`).classList.add('active');
+        
+        currentQuestionIndex = index
+        showQuestion(index);
+        document.getElementById('questionModal').style.display = 'none';
+    }
+
+    // Отключить кнопку завершения теста, после первого нажатия, чтобы предотвратить множество запросов обработки формы
+    function disableSubmitButton() {
+        var submitButton = document.getElementById("finish");
+        var form = document.getElementById("quiz-form")
+        form.submit()
+        submitButton.disabled = true;
+        submitButton.innerText = "Подождите...";
+        submitButton.classList.add("disabled");
+    }
+
+    </script>
+
+    {% endblock content %}
+
+    {% block last %}
+    <script>
+        {% if user.is_authenticated %}
+                {% if user.groups.all.first.name == 'Студент' %}	
+                    document.querySelectorAll('#navbarSupportedContent ul li')[5].querySelector('a').classList.add('active');
+                {% else %}
+                    document.querySelectorAll('#navbarSupportedContent ul li')[7].querySelector('a').classList.add('active');
+                {% endif %}
+        {% else %}
+            document.querySelectorAll('#navbarSupportedContent ul li')[4].querySelector('a').classList.add('active');
+        {% endif %}
+    </script>
+    {% endblock last %}

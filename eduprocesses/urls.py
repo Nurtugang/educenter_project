@@ -24,7 +24,11 @@ urlpatterns = [
     
     path('add-student-to-group/', add_student_to_group, name='add_student_to_group'),
     path('remove-student-from-group/', remove_student_from_group, name='remove_student_from_group'),
+    
     path('student_profile/<int:student_id>/', student_profile, name='student_profile'),
+    
+    path('students_management/', students_management, name='students_management'),
+    path('get_students_by_group/<int:group_id>/', get_students_by_group, name='get_students_by_group'),
 
 ]
 

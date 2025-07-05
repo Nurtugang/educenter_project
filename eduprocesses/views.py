@@ -5,6 +5,7 @@ from django.db.models import Avg, Q
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 
 from users.models import CustomUser
 from senim_store.models import UserCoins
@@ -306,21 +307,11 @@ def student_profile(request, student_id):
 	is_admin = request.user.groups.filter(name='Администратор').exists()
 	is_teacher = request.user.groups.filter(name='Преподаватель').exists()
 	is_student = request.user.groups.filter(name='Студент').exists()
-	
+ 
 	student = get_object_or_404(CustomUser, id=student_id)
 	
-	# Проверка прав доступа к досье
-	if is_student and request.user != student:
-		# Студент может видеть только свое досье
-		return redirect('profile')
-	elif is_teacher:
-		# Учитель может видеть досье только своих студентов
-		teacher_groups = StudyGroup.objects.filter(teacher=request.user)
-		if not teacher_groups.filter(students=student).exists():
-			return redirect('journal')
-	elif not is_admin:
-		# Если не админ, не учитель и не студент - нет доступа
-		return redirect('index')
+	if request.user != student and not (is_admin or is_teacher):
+		return redirect('index')	
 	
 	# Получение всех групп студента
 	student_groups = StudyGroup.objects.filter(students=student)
@@ -340,7 +331,6 @@ def student_profile(request, student_id):
 		elif request.POST.get('tabel-date'): #если выбранаа дата
 			tabel_date = request.POST.get('tabel-date')
 			if tabel_date == 'week': #период этой недели
-				from eduprocesses.date_utils import get_this_week_dates, get_this_month_dates
 				start_date, end_date = get_this_week_dates()
 				choosen_range = (start_date, end_date)
 				selected_period = 'week'
@@ -353,10 +343,9 @@ def student_profile(request, student_id):
 				choosen_range = (start_date, end_date)
 				selected_period = 'customrange'
 	else: #если фильтр не использован(первичная загрузка страницы)
-		from eduprocesses.date_utils import get_this_month_dates
-		start_date, end_date = get_this_month_dates() #фильтр по умолчанию
-		choosen_range = (start_date, end_date)
-		selected_period = 'month'
+		choosen_range = '1'
+		selected_period = '1'
+		start_date = end_date = '2023-08-08'
 	
 	# Применяем фильтр к посещениям
 	if selected_period in ['1', '2', '3', '4']:
@@ -369,6 +358,7 @@ def student_profile(request, student_id):
 	present_count = attendances.filter(attendance_status='PR').count()
 	absent_with_reason = attendances.filter(attendance_status='ABS-R').count()
 	absent_without_reason = attendances.filter(attendance_status='ABS-NR').count()
+	not_marked_count = attendances.filter(attendance_status__isnull=True).count()
 	
 	# Расчет процентов посещаемости
 	attendance_percentage = (present_count / total_lessons * 100) if total_lessons > 0 else 0
@@ -413,6 +403,27 @@ def student_profile(request, student_id):
 			if subjects_stats[subject]['total_lessons'] > 0 else 0
 		)
 	
+	# Статистика посещаемости по предметам (для круговых диаграмм)
+	subjects_attendance = {}
+	for attendance in attendances:
+		subject_name = attendance.lesson.study_group.subject.name
+		if subject_name not in subjects_attendance:
+			subjects_attendance[subject_name] = {
+				'present': 0,
+				'absent_with_reason': 0,
+				'absent_without_reason': 0,
+				'not_marked': 0
+			}
+		
+		if attendance.attendance_status == 'PR':
+			subjects_attendance[subject_name]['present'] += 1
+		elif attendance.attendance_status == 'ABS-R':
+			subjects_attendance[subject_name]['absent_with_reason'] += 1
+		elif attendance.attendance_status == 'ABS-NR':
+			subjects_attendance[subject_name]['absent_without_reason'] += 1
+		else:  # None or not marked
+			subjects_attendance[subject_name]['not_marked'] += 1
+ 
 	# Данные для графика динамики оценок (последние 10 уроков с оценками)
 	recent_grades = graded_attendances.order_by('-lesson__date')[:10]
 	grade_timeline = []
@@ -424,13 +435,16 @@ def student_profile(request, student_id):
 		})
 	
 	# Статистика выполнения домашних заданий
-	homework_completed_count = attendances.filter(homework_completed=True).count()
-	homework_not_completed_count = attendances.filter(homework_completed=False).count()
-	homework_total_count = attendances.filter(homework_completed__isnull=False).count()
+	homework_total_count = attendances.filter(lesson__homework__isnull=False).count()
+	homework_completed_count = attendances.filter(lesson__homework__isnull=False, homework_completed=True).count()
+	homework_completed_count = attendances.filter(lesson__homework__isnull=False, homework_completed=True).count()
+	homework_not_completed_count = attendances.filter(lesson__homework__isnull=False, homework_completed=False).count()
+	homework_not_marked = attendances.filter(lesson__homework__isnull=False, homework_completed__isnull=True).count()
 	
 	homework_stats = {
 		'completed': homework_completed_count,
 		'not_completed': homework_not_completed_count,
+		'not_marked': homework_not_marked,
 		'total': homework_total_count,
 		'completion_rate': (homework_completed_count / homework_total_count * 100) if homework_total_count > 0 else 0
 	}
@@ -516,13 +530,15 @@ def student_profile(request, student_id):
 		'attendance': {
 			'present': present_count,
 			'absent_with_reason': absent_with_reason,
-			'absent_without_reason': absent_without_reason
+			'absent_without_reason': absent_without_reason,
+   			'not_marked_count': not_marked_count	
 		},
 		'grades': grade_distribution,
 		'subjects': subjects_stats,
 		'grade_timeline': grade_timeline,
 		'homework': homework_stats,
-		'quiz_performance': quiz_stats['subjects_performance']
+		'quiz_performance': quiz_stats['subjects_performance'],
+  		'subjects_attendance': subjects_attendance,
 	}
 	
 	context = {
@@ -547,6 +563,68 @@ def student_profile(request, student_id):
 		'is_admin': is_admin,
 		'is_teacher': is_teacher,
 		'is_student': is_student,
+  
+		'subjects_attendance': subjects_attendance,
 	}
 	
 	return render(request, 'student_profile.html', context)
+
+
+@login_required
+def students_management(request):
+    """Страница управления студентами"""
+    
+    # Проверка прав доступа
+    is_admin = request.user.groups.filter(name='Администратор').exists()
+    is_teacher = request.user.groups.filter(name='Преподаватель').exists()
+    
+    if not (is_admin or is_teacher):
+        return redirect('index')
+    
+    # Получаем группы в зависимости от роли
+    if is_teacher:
+        study_groups = StudyGroup.objects.filter(teacher=request.user).order_by('name')
+    else:  # admin
+        study_groups = StudyGroup.objects.all().order_by('name')
+    
+    context = {
+        'study_groups': study_groups,
+        'is_admin': is_admin,
+        'is_teacher': is_teacher,
+    }
+    
+    return render(request, 'students_management.html', context)
+
+
+@login_required
+def get_students_by_group(request, group_id):
+    """AJAX endpoint для получения студентов по группе"""
+    
+    # Проверка прав доступа
+    is_admin = request.user.groups.filter(name='Администратор').exists()
+    is_teacher = request.user.groups.filter(name='Преподаватель').exists()
+    
+    if not (is_admin or is_teacher):
+        return JsonResponse({'error': 'Access denied'}, status=403)
+    
+    try:
+        group = StudyGroup.objects.get(id=group_id)
+        
+        # Получаем студентов группы
+        students = group.students.all().order_by('last_name', 'first_name')
+        
+        students_data = []
+        for student in students:
+            students_data.append({
+                'id': student.id,
+                'name': f'{student.last_name} {student.first_name}',
+                'grade': student.grade or 'Не указан'
+            })
+        
+        return JsonResponse({
+            'students': students_data,
+            'group_name': group.name
+        })
+        
+    except StudyGroup.DoesNotExist:
+        return JsonResponse({'error': 'Group not found'}, status=404)

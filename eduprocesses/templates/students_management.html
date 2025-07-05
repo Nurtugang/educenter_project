@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head %}
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" type="text/css" href="{% static 'eduprocesses/student_management_style.css' %}" />
+
+{% endblock head %}
+
+{% block content %}
+
+<section id="page-banner" class="pt-55 pb-60 bg_cover" data-overlay="8">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-banner-cont">
+                    <h2>Досье учеников</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'index' %}">Домашняя страница</a></li>
+                            {% if is_teacher %}
+                                <li class="breadcrumb-item"><a href="{% url 'journal' %}">Журнал</a></li>
+                            {% elif is_admin %}
+                                <li class="breadcrumb-item"><a href="#">Ученики</a></li>
+                            {% endif %}
+                            <li class="breadcrumb-item active" aria-current="page">Досье</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="pt-30 pb-120 gray-bg">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="management-card">
+                    <h4><strong>Выбор студента</strong></h4>
+                    <p class="text-muted">Выберите учебную группу, затем студента для выполнения действий</p>
+                    
+                    <div class="row">
+                        <!-- Выбор учебной группы -->
+                        <div class="col-md-4">
+                            <div class="select-container">
+                                <label for="study-group-select">
+                                    <i class="fa fa-users"></i> Учебная группа
+                                </label>
+                                <select id="study-group-select" class="form-control">
+                                    <option value="">Выберите учебную группу</option>
+                                    {% for group in study_groups %}
+                                        <option value="{{ group.id }}" data-subject="{{ group.subject.name }}" data-teacher="{{ group.teacher.first_name }} {{ group.teacher.last_name }}">
+                                            {{ group.name }} ({{ group.subject.name }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Выбор студента -->
+                        <div class="col-md-4">
+                            <div class="select-container">
+                                <label for="student-select">
+                                    <i class="fa fa-user"></i> Студент
+                                </label>
+                                <select id="student-select" class="form-control" disabled>
+                                    <option value="">Сначала выберите группу</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Действия -->
+                        <div class="col-md-4">
+                            <div class="select-container">
+                                <label style="visibility: hidden;">Действия</label>
+                                <div class="action-buttons" style="padding-top: 0; border-top: none;">
+                                    <button id="view-profile-btn" class="btn btn-primary btn-block" disabled data-toggle="tooltip" title="Просмотреть полное досье студента">
+                                        <i class="fa fa-user"></i> Досье студента
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Информация о выбранном студенте -->
+                    <div id="student-info" class="student-info">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Выбранный студент:</strong>
+                                <div id="selected-student-name">-</div>
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Класс:</strong>
+                                <div id="selected-student-grade">-</div>
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Группа:</strong>
+                                <div id="selected-group-name">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Будущие действия (пока скрыты) -->
+                    <div class="action-buttons" style="display: none;">
+                        <h5><strong>Дополнительные действия:</strong></h5>
+                        <button id="edit-grades-btn" class="btn btn-warning" disabled>
+                            <i class="fa fa-edit"></i> Редактировать оценки
+                        </button>
+                        <button id="attendance-btn" class="btn btn-info" disabled>
+                            <i class="fa fa-calendar-check-o"></i> Посещаемость
+                        </button>
+                        <button id="homework-btn" class="btn btn-success" disabled>
+                            <i class="fa fa-book"></i> Домашние задания
+                        </button>
+                        <button id="reports-btn" class="btn btn-secondary" disabled>
+                            <i class="fa fa-file-text-o"></i> Отчеты
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock content %}
+
+{% block last %}
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Инициализация Select2
+    $('#study-group-select').select2({
+        placeholder: 'Выберите учебную группу',
+        allowClear: true
+    });
+    
+    $('#student-select').select2({
+        placeholder: 'Сначала выберите группу',
+        allowClear: true
+    });
+    
+    // Инициализация тултипов
+    $('[data-toggle="tooltip"]').tooltip();
+    
+    // Обработчик выбора учебной группы
+    $('#study-group-select').on('change', function() {
+        const groupId = $(this).val();
+        const studentSelect = $('#student-select');
+        const viewProfileBtn = $('#view-profile-btn');
+        const studentInfo = $('#student-info');
+        
+        if (groupId) {
+            // Показываем загрузку
+            studentSelect.prop('disabled', true).addClass('loading');
+            studentSelect.html('<option value="">Загрузка студентов...</option>');
+            
+            // AJAX запрос для получения студентов
+            $.ajax({
+                url: `/get_students_by_group/${groupId}/`,
+                type: 'GET',
+                success: function(data) {
+                    // Очищаем селект студентов
+                    studentSelect.empty();
+                    studentSelect.append('<option value="">Выберите студента</option>');
+                    
+                    // Добавляем студентов
+                    if (data.students && data.students.length > 0) {
+                        $.each(data.students, function(index, student) {
+                            studentSelect.append(
+                                `<option value="${student.id}" data-grade="${student.grade}" data-name="${student.name}">
+                                    ${student.name} (${student.grade} класс)
+                                </option>`
+                            );
+                        });
+                        studentSelect.prop('disabled', false);
+                    } else {
+                        studentSelect.append('<option value="">В группе нет студентов</option>');
+                    }
+                    
+                    // Обновляем Select2
+                    studentSelect.trigger('change');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Ошибка загрузки студентов:', error);
+                    studentSelect.html('<option value="">Ошибка загрузки</option>');
+                },
+                complete: function() {
+                    studentSelect.removeClass('loading');
+                }
+            });
+        } else {
+            // Очищаем селект студентов
+            studentSelect.empty();
+            studentSelect.append('<option value="">Сначала выберите группу</option>');
+            studentSelect.prop('disabled', true);
+            viewProfileBtn.prop('disabled', true);
+            studentInfo.hide();
+        }
+    });
+    
+    // Обработчик выбора студента
+    $('#student-select').on('change', function() {
+        const studentId = $(this).val();
+        const selectedOption = $(this).find('option:selected');
+        const viewProfileBtn = $('#view-profile-btn');
+        const studentInfo = $('#student-info');
+        
+        if (studentId) {
+            // Активируем кнопку просмотра досье
+            viewProfileBtn.prop('disabled', false);
+            
+            // Показываем информацию о студенте
+            const studentName = selectedOption.data('name');
+            const studentGrade = selectedOption.data('grade');
+            const groupName = $('#study-group-select option:selected').text();
+            
+            $('#selected-student-name').text(studentName);
+            $('#selected-student-grade').text(studentGrade);
+            $('#selected-group-name').text(groupName);
+            studentInfo.fadeIn();
+            
+            // Сохраняем ID студента для кнопок
+            viewProfileBtn.data('student-id', studentId);
+        } else {
+            viewProfileBtn.prop('disabled', true);
+            studentInfo.hide();
+        }
+    });
+    
+    // Обработчик кнопки "Досье студента"
+    $('#view-profile-btn').on('click', function() {
+        const studentId = $(this).data('student-id');
+        if (studentId) {
+            window.location.href = `/student_profile/${studentId}/`;
+        }
+    });
+    
+    // Активация правильного пункта меню
+    {% if is_teacher %}
+        document.querySelectorAll('#navbarSupportedContent ul li')[4].querySelector('a').classList.add('active');
+    {% elif is_admin %}
+        document.querySelectorAll('#navbarSupportedContent ul li')[4].querySelector('a').classList.add('active');
+    {% endif %}
+});
+</script>
+{% endblock last %}

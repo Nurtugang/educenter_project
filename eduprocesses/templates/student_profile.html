@@ -3,101 +3,10 @@
 {% load custom_filters %}
 
 {% block head %}
-<!-- Chart.js для диаграмм -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- Датапикер для выбора периодов -->
+
 <link rel="stylesheet" type="text/css" href="{% static 'date/daterangepicker.css' %}" />
-<style>
-.profile-card {
-    background-color: white;
-    padding: 30px;
-    border-radius: 5px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-.stat-card {
-    background-color: white;
-    padding: 20px;
-    border-radius: 5px;
-    text-align: center;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-.stat-card h3 {
-    color: #ed7e4a;
-    font-size: 28px;
-    margin-bottom: 5px;
-}
-
-.stat-card p {
-    color: #8a8a8a;
-    font-size: 14px;
-    margin: 0;
-}
-
-.chart-container {
-    background-color: white;
-    padding: 30px;
-    border-radius: 5px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-.chart-wrapper {
-    position: relative;
-    height: 300px;
-    margin: 20px 0;
-}
-
-.quarter-selector {
-    background-color: white;
-    padding: 20px 30px;
-    border-radius: 5px;
-    margin-bottom: 20px;
-}
-
-.progress-bar-custom {
-    background-color: #f0f0f0;
-    border-radius: 10px;
-    height: 20px;
-    overflow: hidden;
-    margin: 10px 0;
-}
-
-.progress-fill {
-    background-color: #47a5c9;
-    height: 100%;
-    border-radius: 10px;
-    transition: width 0.3s ease;
-}
-
-.progress-fill.excellent {
-    background-color: #28a745;
-}
-
-.progress-fill.good {
-    background-color: #47a5c9;
-}
-
-.progress-fill.average {
-    background-color: #ffc107;
-}
-
-.progress-fill.poor {
-    background-color: #dc3545;
-}
-
-.subject-row {
-    padding: 15px 0;
-    border-bottom: 1px solid #eee;
-}
-
-.subject-row:last-child {
-    border-bottom: none;
-}
-</style>
+<link rel="stylesheet" type="text/css" href="{% static 'eduprocesses/student_profile_style.css' %}" />
 {% endblock head %}
 
 {% block content %}
@@ -111,12 +20,10 @@
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="{% url 'index' %}">Домашняя страница</a></li>
-                            {% if is_student %}
-                                <li class="breadcrumb-item"><a href="{% url 'profile' %}">Профиль</a></li>
-                            {% elif is_teacher %}
+                            {% if is_teacher %}
                                 <li class="breadcrumb-item"><a href="{% url 'journal' %}">Журнал</a></li>
                             {% elif is_admin %}
-                                <li class="breadcrumb-item"><a href="{% url 'admin:index' %}">Админ-панель</a></li>
+                                <li class="breadcrumb-item"><a href="#">Ученики</a></li>
                             {% endif %}
                             <li class="breadcrumb-item active" aria-current="page">Досье: {{student.first_name}} {{student.last_name}}</li>
                         </ol>
@@ -194,12 +101,14 @@
                             <p>Всего уроков</p>
                         </div>
                     </div>
+                    
                     <div class="col-lg-3 col-md-6">
-                        <div class="stat-card">
+                        <div class="stat-card" data-toggle="tooltip" data-placement="top" title="Процент посещенных уроков от общего количества. P.S. Если урок не отмечен, то он считается посещенным.">
                             <h3>{{attendance_percentage}}%</h3>
                             <p>Посещаемость</p>
                         </div>
                     </div>
+                    
                     <div class="col-lg-3 col-md-6">
                         <div class="stat-card">
                             <h3>{{average_grade}}</h3>
@@ -207,11 +116,12 @@
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-6">
-                        <div class="stat-card">
+                        <div class="stat-card" data-toggle="tooltip" data-placement="top" title="Берутся в расчет только укроки где домашнее задание было задано.">
                             <h3>{{homework_stats.completion_rate|floatformat:0}}%</h3>
                             <p>Выполнение ДЗ</p>
                         </div>
                     </div>
+                    
                 </div>
 
                 {% if quiz_stats.total_attempts > 0 %}
@@ -295,7 +205,7 @@
             <!-- Динамика оценок -->
             <div class="col-lg-6">
                 <div class="chart-container">
-                    <h4><strong>Динамика оценок (последние 10 уроков)</strong></h4>
+                    <h4 data-toggle="tooltip" data-placement="top" title="Показывает изменение оценок за последние 10 уроков с оценками. Если оценок меньше 10, то показываются все имеющиеся."><strong>Динамика оценок (посл. 10 уроков)</strong></h4>
                     <div class="chart-wrapper">
                         <canvas id="gradeTimelineChart"></canvas>
                     </div>
@@ -306,42 +216,71 @@
         
 
         <!-- Статистика по предметам (только журнал) -->
+        <!-- Посещаемость по предметам (круговые диаграммы) -->
         <div class="row">
             <div class="col-lg-12">
                 <div class="chart-container">
-                    <h4><strong>Успеваемость по предметам (журнал)</strong></h4>
-                    {% for subject, stats in subjects_stats.items %}
-                        <div class="subject-row">
-                            <div class="row align-items-center">
-                                <div class="col-md-3">
-                                    <strong>{{subject}}</strong>
+                    <h4><strong>Посещаемость по предметам</strong></h4>
+                    <div class="row">
+                        {% for subject, attendance in subjects_attendance.items %}
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="text-center">
+                                <h6><strong>{{subject}}</strong></h6>
+                                <div style="height: 200px; position: relative;">
+                                    <canvas id="attendanceChart_{{forloop.counter}}"></canvas>
                                 </div>
-                                <div class="col-md-3">
-                                    <small class="text-muted">Средний балл</small>
-                                    <div class="progress-bar-custom">
-                                        <div class="progress-fill {% if stats.avg_grade >= 8 %}excellent{% elif stats.avg_grade >= 6 %}good{% elif stats.avg_grade >= 4 %}average{% else %}poor{% endif %}" 
-                                             style="width: {{stats.avg_grade|multiply:10}}%"></div>
-                                    </div>
-                                    <span>{{stats.avg_grade|floatformat:1}}/10</span>
-                                </div>
-                                <div class="col-md-3">
-                                    <small class="text-muted">Посещаемость</small>
-                                    <div class="progress-bar-custom">
-                                        <div class="progress-fill {% if stats.attendance_rate >= 90 %}excellent{% elif stats.attendance_rate >= 75 %}good{% elif stats.attendance_rate >= 60 %}average{% else %}poor{% endif %}" 
-                                             style="width: {{stats.attendance_rate}}%"></div>
-                                    </div>
-                                    <span>{{stats.attendance_rate|floatformat:0}}%</span>
-                                </div>
-                                <div class="col-md-3">
-                                    <small class="text-muted">Уроков: {{stats.total_lessons}}</small><br>
-                                    <small class="text-muted">Оценок: {{stats.grades|length}}</small>
-                                </div>
+                                <small class="text-muted">
+                                    Всего уроков: {{attendance.present|add:attendance.absent_with_reason|add:attendance.absent_without_reason|add:attendance.not_marked}}
+                                </small>
                             </div>
                         </div>
-                    {% endfor %}
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
+
+        <!-- Выполнение домашних заданий (если доступно) -->
+        {% if homework_stats.total > 0 %}
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="chart-container">
+                    <h4><strong>Выполнение домашних заданий</strong></h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="chart-wrapper">
+                                <canvas id="homeworkChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mt-4">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="stat-card">
+                                            <h3 style="color: #28a745;">{{homework_stats.completed}}</h3>
+                                            <p>Выполнено</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="stat-card">
+                                            <h3 style="color: #dc3545;">{{homework_stats.not_completed}}</h3>
+                                            <p>Не выполнено</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="stat-card">
+                                            <h3 style="color: #adbab6;">{{homework_stats.not_marked}}</h3>
+                                            <p>Не отмечено</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
 
         <!-- Тестирования (если доступно) -->
         {% if quiz_stats.total_attempts > 0 %}
@@ -408,41 +347,7 @@
         </div>
         {% endif %}
 
-        <!-- Выполнение домашних заданий (если доступно) -->
-        {% if homework_stats.total > 0 %}
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="chart-container">
-                    <h4><strong>Выполнение домашних заданий</strong></h4>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="chart-wrapper">
-                                <canvas id="homeworkChart"></canvas>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mt-4">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="stat-card">
-                                            <h3 style="color: #28a745;">{{homework_stats.completed}}</h3>
-                                            <p>Выполнено</p>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="stat-card">
-                                            <h3 style="color: #dc3545;">{{homework_stats.not_completed}}</h3>
-                                            <p>Не выполнено</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
+        
     </div>
 </section>
 
@@ -519,14 +424,15 @@ const attendanceCtx = document.getElementById('attendanceChart').getContext('2d'
 new Chart(attendanceCtx, {
     type: 'doughnut',
     data: {
-        labels: ['Присутствовал', 'Не был (с причиной)', 'Не был (без причины)'],
+        labels: ['Присутствовал', 'Не был (с причиной)', 'Не был (без причины)', 'Не отмечен'],
         datasets: [{
             data: [
                 chartData.attendance.present,
                 chartData.attendance.absent_with_reason,
-                chartData.attendance.absent_without_reason
+                chartData.attendance.absent_without_reason,
+                chartData.attendance.not_marked_count
             ],
-            backgroundColor: [colors.success, colors.warning, colors.danger],
+            backgroundColor: [colors.success, colors.warning, colors.danger, '#adbab6'],
             borderWidth: 2,
             borderColor: '#fff'
         }]
@@ -541,6 +447,40 @@ new Chart(attendanceCtx, {
         }
     }
 });
+
+{% for subject, attendance in subjects_attendance.items %}
+const attendanceSubjectCtx{{forloop.counter}} = document.getElementById('attendanceChart_{{forloop.counter}}').getContext('2d');
+new Chart(attendanceSubjectCtx{{forloop.counter}}, {
+    type: 'doughnut',
+    data: {
+        labels: ['Присутствовал', 'Не был (с причиной)', 'Не был (без причины)', 'Не отмечен'],
+        datasets: [{
+            data: [
+                {{attendance.present}},
+                {{attendance.absent_with_reason}},
+                {{attendance.absent_without_reason}},
+                {{attendance.not_marked}}
+            ],
+            backgroundColor: [colors.success, colors.warning, colors.danger, '#adbab6'],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    fontSize: 10,
+                    boxWidth: 12
+                }
+            }
+        }
+    }
+});
+{% endfor %}
 
 // Диаграмма распределения оценок (столбчатая)
 const gradesCtx = document.getElementById('gradesChart').getContext('2d');
@@ -607,6 +547,7 @@ new Chart(timelineCtx, {
             y: {
                 beginAtZero: true,
                 max: 10,
+                min: 0,
                 ticks: {
                     stepSize: 1
                 }
@@ -675,13 +616,14 @@ const homeworkCtx = document.getElementById('homeworkChart').getContext('2d');
 new Chart(homeworkCtx, {
     type: 'pie',
     data: {
-        labels: ['Выполнено', 'Не выполнено'],
+        labels: ['Выполнено', 'Не выполнено', 'Не отмечено'],
         datasets: [{
             data: [
                 chartData.homework.completed,
-                chartData.homework.not_completed
+                chartData.homework.not_completed,
+                chartData.homework.not_marked,
             ],
-            backgroundColor: [colors.success, colors.danger],
+            backgroundColor: [colors.success, colors.danger, '#adbab6'],
             borderWidth: 2,
             borderColor: '#fff'
         }]
@@ -705,7 +647,16 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('#navbarSupportedContent ul li')[3].querySelector('a').classList.add('active');
     {% elif is_teacher %}
         document.querySelectorAll('#navbarSupportedContent ul li')[3].querySelector('a').classList.add('active');
+    {% elif is_admin %}
+        document.querySelectorAll('#navbarSupportedContent ul li')[4].querySelector('a').classList.add('active');
     {% endif %}
 });
+</script>
+
+<!-- Инициализация Bootstrap тултипов -->
+<script>
+    $(document).ready(function(){
+        $('[data-toggle="tooltip"]').tooltip();
+    });
 </script>
 {% endblock last %}

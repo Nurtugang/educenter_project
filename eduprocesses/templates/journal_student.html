@@ -26,7 +26,7 @@
 	<div class="container">
 		<div class="row align-items-center">
 			<div class="col-md-12" style="background-color: white; padding-left: 30px; padding-right: 30px; padding-top: 30px;">
-				<h4 class="super-centered"><strong>Выберите четверть:</strong></h4>
+				<h4 class="super-centered"><strong>Выберите полугодие:</strong></h4>
 			</div>
 		</div>
 
@@ -35,10 +35,8 @@
 				<form method="post" action="{% url 'journal_student' %}">
 					<div class="d-flex flex-column flex-md-row justify-content-between">
                         {% csrf_token %}
-                        <button style="border-radius: 0px; width: 100%; margin-bottom: 10px;" type="submit" class="main-btn quarter-button {% if selected_quarter == '1' %}selected{% endif %}" name="Q1" value="1">1 четверть</button>
-                        <button style="border-radius: 0px; width: 100%; margin-bottom: 10px;" type="submit" class="main-btn quarter-button {% if selected_quarter == '2' %}selected{% endif %}" name="Q2" value="2">2 четверть</button>
-                        <button style="border-radius: 0px; width: 100%; margin-bottom: 10px;" type="submit" class="main-btn quarter-button {% if selected_quarter == '3' %}selected{% endif %}" name="Q3" value="3">3 четверть</button>
-                        <button style="border-radius: 0px; width: 100%; margin-bottom: 10px;" type="submit" class="main-btn quarter-button {% if selected_quarter == '4' %}selected{% endif %}" name="Q4" value="4">4 четверть</button>
+                        <button style="border-radius: 0px; width: 100%; margin-bottom: 10px;" type="submit" class="main-btn quarter-button {% if selected_quarter == '1' %}selected{% endif %}" name="Q1" value="1">1 полугодие</button>
+                        <button style="border-radius: 0px; width: 100%; margin-bottom: 10px;" type="submit" class="main-btn quarter-button {% if selected_quarter == '2' %}selected{% endif %}" name="Q2" value="2">2 полугодие</button>
                     </div>
 				</form>
 			</div>

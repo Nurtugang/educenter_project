@@ -130,8 +130,8 @@
   }
 </style>
 
-<link rel="stylesheet" href="{% static 'date/bootstrap-multiselect.css' %}" integrity="sha512-tlP4yGOtHdxdeW9/VptIsVMLtgnObNNr07KlHzK4B5zVUuzJ+9KrF86B/a7PJnzxEggPAMzoV/eOipZd8wWpag==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-<link rel="stylesheet" href="{% static 'date/bootstrap-datepicker.min.css' %}" integrity="sha512-34s5cpvaNG3BknEWSuOncX28vz97bRI59UnVtEEpFX536A7BtZSJHsDyFoCl8S7Dt2TPzcrCEoHBGeM4SUBDBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="{% static 'date/bootstrap-multiselect.css' %}" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="{% static 'date/bootstrap-datepicker.min.css' %}" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 <div class="date-selection-container">
   <div class="mode-selection">
@@ -190,19 +190,17 @@
 </div>
 
 <script src="{% static 'date/jquery_3.6.4.min.js' %}"></script>
-<script src="{% static 'date/bootstrap-datepicker.min.js' %}" integrity="sha512-LsnSViqQyaXpD4mBBdRYeP6sRwJiJveh2ZIbW41EBrNmKxgr/LFZIiWT6yr+nycvhvauz8c2nYMhrP80YhG7Cw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="{% static 'date/bootstrap-datepicker.min.js' %}" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="{% static 'date/bootstrap-datepicker.ru.min.js' %}" charset="UTF-8"></script>
-<script src="{% static 'date/bootstrap-multiselect.js' %}" integrity="sha512-YwbKCcfMdqB6NYfdzp1NtNcopsG84SxP8Wxk0FgUyTvgtQe0tQRRnnFOwK3xfnZ2XYls+rCfBrD0L2EqmSD2sA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="{% static 'date/bootstrap-multiselect.js' %}" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <script>
 var $j = jQuery.noConflict();
 
 // Находим форму
 const form = document.querySelector('#lesson_form') || 
-          document.querySelector('#semester1_form') || 
-          document.querySelector('#semester2_form') || 
-          document.querySelector('#semester3_form') || 
-          document.querySelector('#semester4_form');
+          document.querySelector('#halfyear1_form') || 
+          document.querySelector('#halfyear2_form');
 
 // Создаем скрытое поле для хранения выбранных дат
 const hiddenInput = document.createElement('input');

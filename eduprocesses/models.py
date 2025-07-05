@@ -48,10 +48,8 @@ STATUS_CHOICES = (
 )
 
 QUARTER_CHOICES = (
-	('1', 'Первая четверть'),
-	('2', 'Вторая четверть'),
-	('3', 'Третья четверть'),
-	('4', 'Четвертая четверть'),
+	('1', 'Первое полугодие'),
+	('2', 'Второе полугодие'),
 )
 
 class Lesson(models.Model):
@@ -60,7 +58,7 @@ class Lesson(models.Model):
 		verbose_name_plural = "Уроки"
 
 	study_group = models.ForeignKey(StudyGroup, on_delete=models.CASCADE, verbose_name='Учебная группа')
-	quarter = models.CharField(max_length=1, choices=QUARTER_CHOICES, verbose_name='Четверть')
+	quarter = models.CharField(max_length=1, choices=QUARTER_CHOICES, verbose_name='Полугодие')
 	date = models.DateField(verbose_name='Дата проведения урока', blank=True, null=True)
 	status = models.CharField(max_length=2, choices=STATUS_CHOICES, default='NP', verbose_name='Статус урока')
 	reason_for_not_held = models.TextField(blank=True, null=True, verbose_name='Причина непроведения урока')

@@ -103,12 +103,11 @@ class LessonAdmin(admin.ModelAdmin):
 			# Для существующих объектов используем стандартное сохранение
 			super().save_model(request, obj, form, change)
 
-class Semester1(Lesson):
+class HalfYear1(Lesson):
 	class Meta:
 		proxy = True
-		verbose_name = 'Урок первой четверти'
-		verbose_name_plural = 'Уpоки первой четверти'
-		# super().save_model(request, obj, form, change)
+		verbose_name = 'Урок первого полугодия'
+		verbose_name_plural = 'Уpоки первого полугодия'
 
 	def save(self, *args, **kwargs):
 		if not self.pk:  
@@ -117,25 +116,12 @@ class Semester1(Lesson):
 		else:
 			super().save(*args, **kwargs)
    
-class Semester2(Lesson):
+
+class HalfYear2(Lesson):
 	class Meta:
 		proxy = True
-		verbose_name = 'Урок второй четверти'
-		verbose_name_plural = 'Уроки второй четверти'
-
-	def save(self, *args, **kwargs):
-		if not self.pk:  
-			super().save(*args, **kwargs) 
-			self.quarter.set('2')
-		else:
-			super().save(*args, **kwargs)
-
-
-class Semester3(Lesson):
-	class Meta:
-		proxy = True
-		verbose_name = 'Урок третей четверти'
-		verbose_name_plural = 'Уроки третей четверти'
+		verbose_name = 'Урок второго полугодия'
+		verbose_name_plural = 'Уроки второго полугодия'
 
 	def save(self, *args, **kwargs):
 		if not self.pk:  
@@ -145,21 +131,8 @@ class Semester3(Lesson):
 			super().save(*args, **kwargs)
    
 
-class Semester4(Lesson):
-	class Meta:
-		proxy = True
-		verbose_name = 'Урок четвертой четверти'
-		verbose_name_plural = 'Уроки четвертой четверти'
-
-	def save(self, *args, **kwargs):
-		if not self.pk:  
-			super().save(*args, **kwargs) 
-			self.quarter.set('4')
-		else:
-			super().save(*args, **kwargs)
-
 # Базовый класс для семестров
-class SemesterAdminBase(LessonAdmin):
+class HalfYearAdminBase(LessonAdmin):
 	def get_custom_date(self, obj):
 		return obj.__str__() 
 	get_custom_date.short_description = 'Урок' 
@@ -228,7 +201,7 @@ class SemesterAdminBase(LessonAdmin):
 		return '1'
 
 
-class Semester1Admin(SemesterAdminBase):
+class HalfYear1Admin(HalfYearAdminBase):
 	def get_quarter(self):
 		return '1'
 		
@@ -236,33 +209,15 @@ class Semester1Admin(SemesterAdminBase):
 		return self.model.objects.filter(quarter='1')
 
 
-class Semester2Admin(SemesterAdminBase):
+class HalfYear2Admin(HalfYearAdminBase):
 	def get_quarter(self):
 		return '2'
 		
 	def get_queryset(self, request):
 		return self.model.objects.filter(quarter='2')
 
-
-class Semester3Admin(SemesterAdminBase):
-	def get_quarter(self):
-		return '3'
-		
-	def get_queryset(self, request):
-		return self.model.objects.filter(quarter='3')
-
-
-class Semester4Admin(SemesterAdminBase):
-	def get_quarter(self):
-		return '4'
-		
-	def get_queryset(self, request):
-		return self.model.objects.filter(quarter='4')
-
-admin.site.register(Semester1, Semester1Admin)
-admin.site.register(Semester2, Semester2Admin)
-admin.site.register(Semester3, Semester3Admin)
-admin.site.register(Semester4, Semester4Admin)
+admin.site.register(HalfYear1, HalfYear1Admin)
+admin.site.register(HalfYear2, HalfYear2Admin)
 
 class TeacherFilter(admin.SimpleListFilter):
 	title = 'Преподаватель'
@@ -309,7 +264,7 @@ class StudentAttendanceAdmin(admin.ModelAdmin):
 	
 	def get_custom_quarter(self, obj):
 		return obj.lesson.quarter
-	get_custom_quarter.short_description = 'Четверть'  
+	get_custom_quarter.short_description = 'Полугодие'  
 	
 	list_display = ('student', 'lesson', 'attendance_status', 'mark', 'get_subject_name', 'get_custom_date', 'get_custom_quarter')
 	list_filter = (('lesson__date', DateRangeFilterBuilder()), 'lesson__study_group', 'lesson__study_group__subject', 'lesson__quarter')

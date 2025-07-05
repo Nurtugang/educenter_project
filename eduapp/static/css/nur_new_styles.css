@@ -1,0 +1,11 @@
+@media (max-width: 768px) {
+    .copyright, .phrases {
+        text-align: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .hide-on-mobile {
+        display: none;
+    }
+}

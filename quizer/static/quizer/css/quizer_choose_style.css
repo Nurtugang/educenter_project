@@ -1,0 +1,16 @@
+.btn {
+    cursor: pointer;
+    font-size: 18px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    box-shadow: 0 4px #222;
+    margin-right: 10px;
+}
+.btn[disabled], .btn[disabled]:hover, .btn[disabled]:active {
+    background-color: #cccccc;
+    color: #666666;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}

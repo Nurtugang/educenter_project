@@ -1,0 +1,163 @@
+.img_fluid{
+    max-height: 300px;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.3s ease;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Стили заголовка и описания */
+.modal-title {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+.modal-description {
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+/* Кнопка закрытия модального окна */
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #555;
+    transition: color 0.3s;
+}
+
+.close-button:hover {
+    color: #000;
+}
+
+/* Сетка для кнопок вопросов */
+.modal-questions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+    gap: 10px;
+    justify-content: center;
+}
+
+/* Стили кнопок вопросов */
+.modal-question-btn {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: #f8f9fa;
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s, transform 0.2s;
+    cursor: pointer;
+}
+
+/* Эффект наведения на кнопку вопроса */
+.modal-question-btn:hover {
+    background-color: #007bff;
+    color: white;
+    transform: scale(1.1);
+}
+
+/* Подсвечивание активного вопроса */
+.modal-question-btn.active {
+    background-color: #28a745;
+    color: white;
+    font-weight: bold;
+}
+
+/* Контейнер кнопок навигации */
+.navigation-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* Общий стиль для всех кнопок */
+.navigation-buttons button {
+    flex: 1;
+    min-width: 120px; /* Минимальная ширина для удобства на мобильных */
+    max-width: 200px; /* Ограничение ширины */
+    padding: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+/* Эффект при наведении */
+.navigation-buttons button:hover {
+    transform: scale(1.05);
+}
+
+/* Делаем кнопки удобными для мобильных устройств */
+@media (max-width: 768px) {
+    .navigation-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .navigation-buttons button {
+        width: 100%; /* Растягиваем кнопки на всю ширину */
+        max-width: none;
+    }
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Центрирование по горизонтали */
+    gap: 10px; /* Отступ между кнопками */
+    margin-top: 15px;
+}
+
+
+
+
+/* Убираем "прилипание" на мобильных */
+@media (max-width: 480px) {
+    .button-container {
+        width: 100%;
+    }
+
+    .button-container button {
+        width: 90%; /* Немного уменьшаем ширину, чтобы кнопки не прилипали */
+    }
+}

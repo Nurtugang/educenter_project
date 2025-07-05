@@ -1,0 +1,31 @@
+/* Убираем стандартное оформление ссылки */
+.subject-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+/* Основные стили карточки */
+.card {
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), 
+                box-shadow 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Плавная, элегантная анимация при наведении */
+.subject-link:hover .card {
+    transform: translateY(-5px) scale(1.03);
+    box-shadow: 0px 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Возвращение в нормальное состояние */
+.subject-link .card {
+    transform: translateY(0) scale(1);
+}
+
+.card-header {
+    display: flex;
+    align-items: center; /* Выравнивание по вертикали */
+    justify-content: center; /* Выравнивание по горизонтали */
+    text-align: center; /* Центрирование текста */
+    min-height: 100px; /* Минимальная высота для выравнивания разной длины заголовков */
+}

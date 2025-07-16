@@ -23,6 +23,7 @@ urlpatterns = [
     path('open_quiz/', include('open_quiz.urls')),
     path('game/', include('fractions_game.urls')),
     path('store/', include('senim_store.urls')),
+    path('weekly-tests/', include('weekly_tests.urls')),
     
     path('robots.txt', robots_txt, name='robots_txt'), #индексация
 

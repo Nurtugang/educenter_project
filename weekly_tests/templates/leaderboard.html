@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'weekly_tests/style.css' %}">
+{% endblock head %}
+
+{% block content %}
+<!--====== PAGE BANNER PART START ======-->
+<section id="page-banner" class="pt-55 pb-60 bg_cover" data-overlay="8">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-banner-cont">
+                    <h2>🏆 Доска почета</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'index' %}">Главная</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Еженедельные тесты</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!--====== PAGE BANNER PART ENDS ======-->
+
+<!--====== LEADERBOARD PART START ======-->
+<section id="leaderboard-part" class="pt-55 pb-60">
+    <div class="container">
+        {% if current_test %}
+            <!-- Текущий тест -->
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="leaderboard-card">
+                        <div class="test-header">
+                            <div class="test-period">
+                                {{ current_test.week_start|date:"d.m.Y" }} – {{ current_test.week_end|date:"d.m.Y" }}
+                            </div>
+                            <div class="test-subjects">
+                                {% for subject in current_test.subjects.all %}
+                                <span>{{ subject.name }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        {% if current_leaderboard %}
+                            <!-- Подиум для топ-3 -->
+                            {% if current_leaderboard|length >= 3 %}
+                                <div class="podium">
+                                    <!-- 2 место -->
+                                    <div class="podium-place">
+                                        <div class="podium-step second">
+                                            <div class="podium-avatar">
+                                                {{ current_leaderboard.1.student.first_name|first }}{{ current_leaderboard.1.student.last_name|first }}
+                                            </div>
+                                            <div class="podium-name">{{ current_leaderboard.1.student.get_full_name }}</div>
+                                            <div class="podium-score">{{ current_leaderboard.1.average_score }}%</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 1 место -->
+                                    <div class="podium-place">
+                                        <div class="podium-crown">👑</div>
+                                        <div class="podium-step first">
+                                            <div class="podium-avatar">
+                                                {{ current_leaderboard.0.student.first_name|first }}{{ current_leaderboard.0.student.last_name|first }}
+                                            </div>
+                                            <div class="podium-name">{{ current_leaderboard.0.student.get_full_name }}</div>
+                                            <div class="podium-score">{{ current_leaderboard.0.average_score }}%</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 3 место -->
+                                    <div class="podium-place">
+                                        <div class="podium-step third">
+                                            <div class="podium-avatar">
+                                                {{ current_leaderboard.2.student.first_name|first }}{{ current_leaderboard.2.student.last_name|first }}
+                                            </div>
+                                            <div class="podium-name">{{ current_leaderboard.2.student.get_full_name }}</div>
+                                            <div class="podium-score">{{ current_leaderboard.2.average_score }}%</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Полный рейтинг -->
+                            <!-- Полный рейтинг в две колонки -->
+<div style="padding: 20px;">
+    <h5 style="margin-bottom: 20px; color: #07294d; text-align: center;">Полный рейтинг</h5>
+    <div class="row">
+        <div class="col-md-6">
+            {% for item in current_leaderboard %}
+                {% if item.column == 'left' %}
+                    <div class="rank-row-compact">
+                        <div class="rank-number-small">{{ item.position }}</div>
+                        <div class="rank-info-small">
+                            <div class="rank-name-small">{{ item.student.get_full_name }}</div>
+                            <div class="rank-score-small">{{ item.average_score }}%</div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        <div class="col-md-6">
+            {% for item in current_leaderboard %}
+                {% if item.column == 'right' %}
+                    <div class="rank-row-compact">
+                        <div class="rank-number-small">{{ item.position }}</div>
+                        <div class="rank-info-small">
+                            <div class="rank-name-small">{{ item.student.get_full_name }}</div>
+                            <div class="rank-score-small">{{ item.average_score }}%</div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+                        {% else %}
+                            <div class="no-results">
+                                <h4>Результаты еще не внесены</h4>
+                                <p>Доска почета появится после внесения результатов тестирования</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Предыдущие тесты -->
+            {% if previous_leaderboards %}
+                <div class="row mt-5">
+                    <div class="col-lg-12">
+                        <h4 style="color: #07294d; margin-bottom: 30px;">Предыдущие тестирования:</h4>
+                        
+                        {% for prev_test in previous_leaderboards %}
+                            <div class="leaderboard-card">
+                                <div class="collapse-header" data-toggle="collapse" data-target="#collapse-{{ forloop.counter }}">
+                                    <div>
+                                        <strong>{{ prev_test.test }}</strong>
+                                        <div class="test-subjects">
+                                            {% for subject in prev_test.test.subjects.all %}
+                                                <span class="subject-badge">{{ subject.name }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <i class="fa fa-chevron-down"></i>
+                                </div>
+                                
+                                <div id="collapse-{{ forloop.counter }}" class="collapse">
+                                    {% if prev_test.leaderboard %}
+                                        <div style="padding: 20px;">
+                                            {% for item in prev_test.leaderboard %}
+                                                <div class="rank-row">
+                                                    <div class="rank-number">{{ item.position }}</div>
+                                                    <div class="rank-info">
+                                                        <div class="rank-name">{{ item.student.get_full_name }}</div>
+                                                        <div class="rank-details">
+                                                            Предметы: 
+                                                            {% for subject in item.subjects %}
+                                                                {{ subject.subject }} ({{ subject.score }}%){% if not forloop.last %}, {% endif %}
+                                                            {% endfor %}
+                                                        </div>
+                                                    </div>
+                                                    <div class="rank-score">{{ item.average_score }}%</div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <div class="no-results">
+                                            <p>Нет данных для этого теста</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            
+        {% else %}
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="no-results">
+                        <h4>Тестирование еще не проводилось</h4>
+                        <p>Доска почета появится после создания первого теста</p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</section>
+<!--====== LEADERBOARD PART ENDS ======-->
+{% endblock content %}

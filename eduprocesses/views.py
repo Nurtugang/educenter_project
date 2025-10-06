@@ -276,8 +276,6 @@ def add_student_to_group(request):
 		student = get_object_or_404(CustomUser, id=student_id)
 		
 		group.students.add(student)
-		group.update_group_type()
-
   
 		return redirect('journal_single', group_id=group_id)
 	else:
@@ -290,10 +288,8 @@ def remove_student_from_group(request):
 		student_id = request.POST.get('student')
 		group = get_object_or_404(StudyGroup, id=group_id)
 		student = get_object_or_404(CustomUser, id=student_id)
-	
 		
 		group.students.remove(student)
-		group.update_group_type()
   
 		return redirect('journal_single', group_id=group_id)
 	else:

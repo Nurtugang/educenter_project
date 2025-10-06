@@ -34,6 +34,103 @@
           position: relative;
           top: -2px;
   }
+  /* Добавьте эти стили в ваш CSS блок */
+.mark-input {
+    width: 60px !important;
+    min-width: 60px !important;
+    max-width: 60px !important;
+}
+
+.coins-input {
+    width: 80px !important;
+    min-width: 80px !important;
+    max-width: 80px !important;
+}
+
+/* Фиксированная ширина столбцов таблицы */
+/* Фиксированная ширина для таблицы */
+.table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+/* Фиксированная ширина для каждого столбца */
+.table th:nth-child(1), 
+.table td:nth-child(1) {
+    width: 50px;
+    min-width: 50px;
+    max-width: 50px;
+    text-align: center;
+}
+
+.table th:nth-child(2), 
+.table td:nth-child(2) {
+    width: 180px;
+    min-width: 180px;
+    max-width: 180px;
+}
+
+.table th:nth-child(3), 
+.table td:nth-child(3) {
+    width: 120px;
+    min-width: 120px;
+    max-width: 120px;
+    text-align: center;
+}
+
+.table th:nth-child(4), 
+.table td:nth-child(4) {
+    width: 80px;
+    min-width: 80px;
+    max-width: 80px;
+    text-align: center;
+}
+
+.table th:nth-child(5), 
+.table td:nth-child(5) {
+    width: 200px;
+    min-width: 200px;
+    max-width: 200px;
+}
+
+.table th:nth-child(6), 
+.table td:nth-child(6) {
+    width: 140px;
+    min-width: 140px;
+    max-width: 140px;
+    text-align: center;
+}
+
+.table th:nth-child(7), 
+.table td:nth-child(7) {
+    width: 80px;
+    min-width: 80px;
+    max-width: 80px;
+    text-align: center;
+}
+
+/* Обрезка длинного текста в ячейках */
+.table td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+/* Для комментариев - показать полный текст при наведении */
+.table td:nth-child(5) {
+    position: relative;
+    cursor: pointer;
+}
+
+.table td:nth-child(5):hover {
+    overflow: visible;
+    white-space: normal;
+    background-color: #f8f9fa;
+    z-index: 10;
+    position: relative;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
 </style>
 <style>
   @media (max-width: 768px) {
@@ -79,7 +176,7 @@
 <!--====== PAGE BANNER PART ENDS ======-->
 
 <section class="pt-30 pb-30 gray-bg">
-  <div class="container">
+  <div class="container-fluid">
     <div class="row">
       <div class="col-lg-12 mb-3" style="background-color: white; padding: 30px;">
         <div class="row">
@@ -397,11 +494,11 @@
                 </div>
                 <td class="homework-editable text-center" data-subs="{{is_substituted_teacher}}" data-status="{{sa.lesson.status}}" data-lesson="{{sa.lesson.id}}" data-student="{{sa.student.id}}">
                     {% if sa.homework_completed == True %}
-                        <span style="color: #28a745;">✓ Выполнил</span>
+                        <span style="color: #28a745;">✓</span>
                     {% elif sa.homework_completed == False %}
-                        <span style="color: #dc3545;">✗ Не выполнил</span>
+                        <span style="color: #dc3545;">✗</span>
                     {% else %}
-                        <span style="color: #6c757d;">— Не отмечено</span>
+                        <span style="color: #6c757d;">—</span>
                     {% endif %}
                 </td>
                 <td class="coins-editable text-center" data-subs="{{is_substituted_teacher}}" data-status="{{sa.lesson.status}}" data-lesson="{{sa.lesson.id}}" data-student="{{sa.student.id}}">{{sa.coins|default:' '}}</td>
@@ -447,9 +544,9 @@ $(document).ready(function(){
         var is_substituted_teacher = $(this).data("subs");
         
         if (status == 'NP' || is_substituted_teacher == 'True') {
-            var yesButton = "<button data-homework='true' class='btn btn-success btn-sm homework-button'>✓ Выполнил</button>";
-            var noButton = "<button data-homework='false' class='btn btn-danger btn-sm homework-button'>✗ Не выполнил</button>";
-            var clearButton = "<button data-homework='clear' class='btn btn-secondary btn-sm homework-button'>— Очистить</button>";
+            var yesButton = "<button data-homework='true' class='btn btn-success btn-sm homework-button'>✓</button>";
+            var noButton = "<button data-homework='false' class='btn btn-danger btn-sm homework-button'>✗</button>";
+            var clearButton = "<button data-homework='clear' class='btn btn-secondary btn-sm homework-button'>—</button>";
             
             var buttonsContainer = "<div style='padding: 5px;' class='homework-buttons'>" + yesButton + " " + noButton + " " + clearButton + "</div>";
             
@@ -614,7 +711,7 @@ $(document).ready(function(){
 			if ( (status == 'NP' || is_substituted_teacher == 'True') && (atstatus != 'ABS-R' && atstatus != 'ABS-NR') ) {
 				var value=$(this).text();
         var input_type="number";
-        var input="<input type='"+input_type+"' class='form-control coins-input coins-input-data' value='"+value+"'>";
+        var input="<input type='"+input_type+"' class='form-control coins-input coins-input-data' value='"+value+"'style='width: 80px; display: inline-block;'>";
         $(this).html(input);
         $(this).removeClass("coins-editable")
 			}  
@@ -678,7 +775,7 @@ $(document).ready(function(){
         var input_type="number";
         var min = "0";
         var max = "10"
-        var input="<input type='"+input_type+"' class='form-control mark-input input-data' value='"+value+"'>";
+        var input="<input type='"+input_type+"' class='form-control mark-input input-data' value='"+value+"'style='width: 60px; display: inline-block;'>";
         $(this).html(input);
         $(this).removeClass("editable")
 			}  

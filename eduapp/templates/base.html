@@ -241,6 +241,15 @@
                                         <li class="nav-item dropdown">
                                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown"  data-toggle="dropdown">Тренажеры</a>
                                             <div class="dropdown-menu">
+                                                <a class="dropdown-item p-2" href="{% url 'fractions_easy' %}">
+                                                    <span>Дроби (легкие)</span>
+                                                </a>
+                                                <a class="dropdown-item p-2" href="{% url 'percentages' %}">
+                                                    <span>Проценты</span>
+                                                </a>
+                                                <a class="dropdown-item p-2" href="{% url 'proportions' %}">
+                                                    <span>Пропорции</span>
+                                                </a>
                                               <a class="dropdown-item p-2" href="{% url 'play_game' %}" target="_blank"><span>Тренажер дробей</span></a>
                                               <a class="dropdown-item p-2" href="{% url 'expressions' %}"><span>Тренажер выражений</span></a>
                                               <a class="dropdown-item p-2" href="{% url 'equations' %}"><span>Тренажер уравнений</span></a>

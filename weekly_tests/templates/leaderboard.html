@@ -56,7 +56,7 @@
                                                 {{ current_leaderboard.1.student.first_name|first }}{{ current_leaderboard.1.student.last_name|first }}
                                             </div>
                                             <div class="podium-name">{{ current_leaderboard.1.student.get_full_name }}</div>
-                                            <div class="podium-score">{{ current_leaderboard.1.average_score }}%</div>
+                                            <div class="podium-score">{{ current_leaderboard.1.average_score }} баллов</div>
                                         </div>
                                     </div>
                                     
@@ -68,7 +68,7 @@
                                                 {{ current_leaderboard.0.student.first_name|first }}{{ current_leaderboard.0.student.last_name|first }}
                                             </div>
                                             <div class="podium-name">{{ current_leaderboard.0.student.get_full_name }}</div>
-                                            <div class="podium-score">{{ current_leaderboard.0.average_score }}%</div>
+                                            <div class="podium-score">{{ current_leaderboard.0.average_score }} баллов</div>
                                         </div>
                                     </div>
                                     
@@ -79,7 +79,7 @@
                                                 {{ current_leaderboard.2.student.first_name|first }}{{ current_leaderboard.2.student.last_name|first }}
                                             </div>
                                             <div class="podium-name">{{ current_leaderboard.2.student.get_full_name }}</div>
-                                            <div class="podium-score">{{ current_leaderboard.2.average_score }}%</div>
+                                            <div class="podium-score">{{ current_leaderboard.2.average_score }} баллов</div>
                                         </div>
                                     </div>
                                 </div>
@@ -97,7 +97,7 @@
                         <div class="rank-number-small">{{ item.position }}</div>
                         <div class="rank-info-small">
                             <div class="rank-name-small">{{ item.student.get_full_name }}</div>
-                            <div class="rank-score-small">{{ item.average_score }}%</div>
+                            <div class="rank-score-small">{{ item.average_score }} баллов</div>
                         </div>
                     </div>
                 {% endif %}
@@ -110,7 +110,7 @@
                         <div class="rank-number-small">{{ item.position }}</div>
                         <div class="rank-info-small">
                             <div class="rank-name-small">{{ item.student.get_full_name }}</div>
-                            <div class="rank-score-small">{{ item.average_score }}%</div>
+                            <div class="rank-score-small">{{ item.average_score }} баллов</div>
                         </div>
                     </div>
                 {% endif %}
@@ -159,7 +159,7 @@
                                                         <div class="rank-details">
                                                             Предметы: 
                                                             {% for subject in item.subjects %}
-                                                                {{ subject.subject }} ({{ subject.score }}%){% if not forloop.last %}, {% endif %}
+                                                                {{ subject.subject }} ({{ subject.score }} баллов){% if not forloop.last %}, {% endif %}
                                                             {% endfor %}
                                                         </div>
                                                     </div>

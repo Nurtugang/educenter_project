@@ -1,14 +1,220 @@
-from django.shortcuts import render
-from django.http.response import FileResponse, Http404, JsonResponse
-from django.conf import settings
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
-import pathlib
+import re
 import json
 import random
+import pathlib
 import sympy as sp
-import re
+from django.conf import settings
+from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 from .eq import generate_equations, format_equation, solve
+from django.http.response import FileResponse, Http404, JsonResponse
+
+
+# Импорты калькуляторов
+from .calculators.fractions_calculator import (
+    generate_easy_fractions, 
+    check_fractions_answers
+)
+from .calculators.percent_calculator import (
+    generate_percent_tasks, 
+    check_percent_answers,
+    format_percent_answer
+)
+from .calculators.proportion_calculator import (
+    generate_proportion_tasks, 
+    check_proportion_answers
+)
+
+# ============ ПРЕДСТАВЛЕНИЯ ДЛЯ ТРЕНАЖЕРОВ ============
+
+@login_required
+def fractions_easy(request):
+    """Тренажер легких дробей"""
+    return render(request, 'fractions_easy.html')
+
+@login_required
+def percentages(request):
+    """Тренажер процентов"""
+    return render(request, 'percentages.html')
+
+@login_required
+def proportions(request):
+    """Тренажер пропорций"""
+    return render(request, 'proportions.html')
+
+# ============ ГЕНЕРАТОРЫ ЗАДАНИЙ ============
+
+@login_required
+def fractions_generator(request):
+    """Генератор заданий для дробей"""
+    try:
+        tasks = generate_easy_fractions()
+        
+        # Форматируем задания для фронтенда
+        formatted_tasks = []
+        answers_data = []
+        
+        for task in tasks:
+            formatted_tasks.append(task['task'])
+            answers_data.append({
+                'answer_num': task['answer_num'],
+                'answer_den': task['answer_den'],
+                'answer_text': task['answer']
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'formatted_tasks': formatted_tasks,
+            'tasks_data': answers_data
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+@login_required
+def percent_generator(request):
+    """Генератор заданий для процентов"""
+    try:
+        tasks = generate_percent_tasks()
+        
+        formatted_tasks = []
+        answers_data = []
+        
+        for task in tasks:
+            formatted_tasks.append(task['task'])
+            answers_data.append({
+                'answer': task['answer'],
+                'type': task['type'],
+                'formatted_answer': format_percent_answer(task['answer'], task['type'])
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'formatted_tasks': formatted_tasks,
+            'tasks_data': answers_data
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+@login_required
+def proportion_generator(request):
+    """Генератор заданий для пропорций"""
+    try:
+        tasks = generate_proportion_tasks()
+        
+        formatted_tasks = []
+        answers_data = []
+        
+        for task in tasks:
+            formatted_tasks.append(task['task'])
+            answers_data.append({
+                'answer': task['answer'],
+                'type': task['type']
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'formatted_tasks': formatted_tasks,
+            'tasks_data': answers_data
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+# ============ ПРОВЕРЩИКИ ОТВЕТОВ ============
+
+@csrf_exempt
+@login_required
+def fractions_checker(request):
+    """Проверка ответов для дробей"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            tasks_data = data.get('tasks_data', [])
+            user_answers = data.get('answers', [])
+            
+            results = check_fractions_answers(tasks_data, user_answers)
+            
+            return JsonResponse({
+                'success': True,
+                'results': results,
+                'correct_count': sum(results),
+                'total_count': len(results)
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+    
+    return JsonResponse({'success': False, 'error': 'Method not allowed'})
+
+@csrf_exempt
+@login_required
+def percent_checker(request):
+    """Проверка ответов для процентов"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            tasks_data = data.get('tasks_data', [])
+            user_answers = data.get('answers', [])
+            
+            results = check_percent_answers(tasks_data, user_answers)
+            
+            return JsonResponse({
+                'success': True,
+                'results': results,
+                'correct_count': sum(results),
+                'total_count': len(results)
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+    
+    return JsonResponse({'success': False, 'error': 'Method not allowed'})
+
+@csrf_exempt
+@login_required
+def proportion_checker(request):
+    """Проверка ответов для пропорций"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            tasks_data = data.get('tasks_data', [])
+            user_answers = data.get('answers', [])
+            
+            results = check_proportion_answers(tasks_data, user_answers)
+            
+            return JsonResponse({
+                'success': True,
+                'results': results,
+                'correct_count': sum(results),
+                'total_count': len(results)
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+    
+    return JsonResponse({'success': False, 'error': 'Method not allowed'})
+
 
 @login_required
 def equations(request):

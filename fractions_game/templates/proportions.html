@@ -1,0 +1,366 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .trainer-container {
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .task-list {
+        list-style-type: decimal;
+        padding-left: 20px;
+        font-size: 18px;
+        line-height: 2.5;
+    }
+    
+    .task-list li {
+        margin-bottom: 15px;
+        font-weight: 500;
+    }
+    
+    .answer-list {
+        list-style-type: none;
+        padding-left: 0;
+    }
+    
+    .answer-list li {
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .answer-input {
+        width: 120px;
+        padding: 8px 12px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+        text-align: center;
+        margin-right: 10px;
+        transition: border-color 0.3s;
+    }
+    
+    .answer-input:focus {
+        outline: none;
+        border-color: #47a5c9;
+    }
+    
+    .feedback-icon {
+        font-size: 18px;
+        min-width: 25px;
+    }
+    
+    .control-buttons {
+        margin-top: 30px;
+        text-align: center;
+    }
+    
+    .btn-trainer {
+        background: #47a5c9;
+        color: white;
+        font-size: 16px;
+        padding: 12px 25px;
+        border: none;
+        border-radius: 5px;
+        box-shadow: 0 4px #2c5aa0;
+        margin: 0 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .btn-trainer:hover {
+        background-color: #2980b9;
+        box-shadow: 0 6px #2c5aa0;
+        transform: translateY(-2px);
+    }
+    
+    .btn-check:hover {
+        background-color: #27ae60 !important;
+    }
+    
+    .correct-answer {
+        border: 2px solid #27ae60 !important;
+        background-color: #d5f4e6;
+    }
+    
+    .incorrect-answer {
+        border: 2px solid #e74c3c !important;
+        background-color: #fadbd8;
+    }
+    
+    .progress-info {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        text-align: center;
+        font-weight: 500;
+    }
+    
+    .proportion-hint {
+        background: #fff3cd;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+    }
+    
+    .difficulty-indicator {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: bold;
+        margin-left: 10px;
+    }
+    
+    .easy { background: #d5f4e6; color: #27ae60; }
+    .medium { background: #fff3cd; color: #856404; }
+    .hard { background: #fadbd8; color: #e74c3c; }
+    
+    @media (max-width: 768px) {
+        .trainer-container {
+            padding: 20px;
+        }
+        
+        .col-md-6 {
+            margin-bottom: 20px;
+        }
+        
+        .answer-input {
+            width: 100px;
+        }
+    }
+</style>
+
+<section class="pt-30 pb-120 gray-bg">
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="trainer-container">
+                    <h2 class="text-center mb-4">Тренажер пропорций</h2>
+                    
+                    <div class="proportion-hint">
+                        <strong>Подсказка:</strong> Найдите неизвестное значение x. Используйте основное свойство пропорции: произведение крайних равно произведению средних.
+                    </div>
+                    
+                    <div class="progress-info" id="progress-info" style="display: none;">
+                        Правильных ответов: <span id="correct-count">0</span> из <span id="total-count">6</span>
+                    </div>
+                    
+                    <form id="proportions-form">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Задания:</h5>
+                                <ol id="task-list" class="task-list"></ol>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Найдите x:</h5>
+                                <ul id="answer-list" class="answer-list"></ul>
+                            </div>
+                        </div>
+                        
+                        <div class="control-buttons">
+                            <button id="check-btn" type="button" class="btn-trainer btn-check">
+                                Проверить ответы
+                            </button>
+                            <button id="next-btn" type="button" class="btn-trainer">
+                                Новые задания
+                            </button>
+                            <button id="hint-btn" type="button" class="btn-trainer" style="background: #f39c12;">
+                                Подсказка
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- Модальное окно с подсказкой -->
+                    <div id="hint-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; max-width: 600px; width: 90%;">
+                            <h4>Правила решения пропорций:</h4>
+                            <div style="margin: 20px 0;">
+                                <h5>Основное свойство пропорции:</h5>
+                                <p>Если a : b = c : d, то a × d = b × c</p>
+                            </div>
+                            <div style="margin: 20px 0;">
+                                <h5>Примеры решения:</h5>
+                                <p><strong>x : 3 = 4 : 6</strong></p>
+                                <p>x × 6 = 3 × 4</p>
+                                <p>x × 6 = 12</p>
+                                <p>x = 12 ÷ 6 = 2</p>
+                            </div>
+                            <div style="margin: 20px 0;">
+                                <h5>Для текстовых задач:</h5>
+                                <p>Определите, какие величины пропорциональны, составьте пропорцию и решите её.</p>
+                            </div>
+                            <button onclick="closeHintModal()" class="btn-trainer">Закрыть</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock content %}
+
+{% block last %}
+<script>
+let currentTasksData = [];
+
+$(document).ready(function() {
+    loadNewTasks();
+    
+    // Обработчик проверки ответов
+    $('#check-btn').on('click', function() {
+        checkAnswers();
+    });
+    
+    // Обработчик новых заданий
+    $('#next-btn').on('click', function() {
+        loadNewTasks();
+    });
+    
+    // Обработчик подсказки
+    $('#hint-btn').on('click', function() {
+        showHintModal();
+    });
+});
+
+function loadNewTasks() {
+    $.ajax({
+        url: "{% url 'proportion_generator' %}",
+        method: 'GET',
+        success: function(data) {
+            if (data.success) {
+                currentTasksData = data.tasks_data;
+                displayTasks(data.formatted_tasks);
+                clearResults();
+            } else {
+                console.error('Ошибка при загрузке заданий:', data.error);
+            }
+        },
+        error: function() {
+            console.error('Ошибка при загрузке заданий');
+        }
+    });
+}
+
+function displayTasks(tasks) {
+    $('#task-list').empty();
+    $('#answer-list').empty();
+    
+    tasks.forEach(function(task, index) {
+        // Определяем сложность задания для индикатора
+        let difficulty = 'easy';
+        if (task.includes('рабочих') || task.includes('карте')) {
+            difficulty = 'medium';
+        } else if (task.includes('(x') || task.includes('+ ')) {
+            difficulty = 'hard';
+        }
+        
+        let difficultyLabel = '';
+        if (difficulty === 'easy') difficultyLabel = 'Легко';
+        else if (difficulty === 'medium') difficultyLabel = 'Средне';
+        else difficultyLabel = 'Сложно';
+        
+        $('#task-list').append(`
+            <li>
+                ${task}
+                <span class="difficulty-indicator ${difficulty}">${difficultyLabel}</span>
+            </li>
+        `);
+        
+        $('#answer-list').append(`
+            <li>
+                <input type="text" class="answer-input" name="answer_${index}" 
+                       placeholder="x = ?" autocomplete="off">
+                <span class="feedback-icon"></span>
+            </li>
+        `);
+    });
+}
+
+function checkAnswers() {
+    const answers = [];
+    $('.answer-input').each(function(index, element) {
+        answers.push($(element).val().trim());
+    });
+    
+    const requestData = {
+        tasks_data: currentTasksData,
+        answers: answers
+    };
+    
+    $.ajax({
+        url: "{% url 'proportion_checker' %}",
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(requestData),
+        success: function(result) {
+            if (result.success) {
+                displayResults(result.results);
+                updateProgress(result.correct_count, result.total_count);
+            } else {
+                console.error('Ошибка при проверке ответов:', result.error);
+            }
+        },
+        error: function() {
+            console.error('Ошибка при проверке ответов');
+        }
+    });
+}
+
+function displayResults(results) {
+    const answerInputs = $('.answer-input');
+    const feedbackIcons = $('.feedback-icon');
+    
+    results.forEach(function(isCorrect, index) {
+        const input = answerInputs.eq(index);
+        const icon = feedbackIcons.eq(index);
+        
+        input.removeClass('correct-answer incorrect-answer');
+        
+        if (isCorrect) {
+            input.addClass('correct-answer');
+            icon.html('<i class="fa fa-check" style="color: #27ae60;"></i>');
+        } else {
+            input.addClass('incorrect-answer');
+            icon.html('<i class="fa fa-times" style="color: #e74c3c;"></i>');
+        }
+    });
+}
+
+function updateProgress(correct, total) {
+    $('#correct-count').text(correct);
+    $('#total-count').text(total);
+    $('#progress-info').show();
+}
+
+function clearResults() {
+    $('.answer-input').removeClass('correct-answer incorrect-answer').val('');
+    $('.feedback-icon').empty();
+    $('#progress-info').hide();
+}
+
+function showHintModal() {
+    $('#hint-modal').show();
+}
+
+function closeHintModal() {
+    $('#hint-modal').hide();
+}
+
+// Закрытие модального окна по клику вне его
+$(document).on('click', '#hint-modal', function(e) {
+    if (e.target === this) {
+        closeHintModal();
+    }
+});
+</script>
+{% endblock last %}

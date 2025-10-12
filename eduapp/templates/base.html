@@ -244,15 +244,27 @@
                                                 <a class="dropdown-item p-2" href="{% url 'fractions_easy' %}">
                                                     <span>Дроби (легкие)</span>
                                                 </a>
+                                                <a class="dropdown-item p-2" href="{% url 'fractions_decimal' %}">
+                                                    <span>Дроби (десятичные)</span>
+                                                </a>
+                                                <a class="dropdown-item p-2" href="{% url 'fractions_complex' %}">
+                                                    <span>Дроби (сложные)</span>
+                                                </a>
                                                 <a class="dropdown-item p-2" href="{% url 'percentages' %}">
                                                     <span>Проценты</span>
                                                 </a>
                                                 <a class="dropdown-item p-2" href="{% url 'proportions' %}">
                                                     <span>Пропорции</span>
                                                 </a>
-                                              <a class="dropdown-item p-2" href="{% url 'play_game' %}" target="_blank"><span>Тренажер дробей</span></a>
-                                              <a class="dropdown-item p-2" href="{% url 'expressions' %}"><span>Тренажер выражений</span></a>
-                                              <a class="dropdown-item p-2" href="{% url 'equations' %}"><span>Тренажер уравнений</span></a>
+                                                <a class="dropdown-item p-2" href="{% url 'expressions' %}">
+                                                    <span>Выражения</span>
+                                                </a>
+                                                <a class="dropdown-item p-2" href="{% url 'equations' %}">
+                                                    <span>Уравнения</span>
+                                                </a>
+                                                <a class="dropdown-item p-2" href="{% url 'godot_index' %}" target="_blank">
+                                                    <span>Интерактивный тренажёр дробей (Godot)</span>
+                                                </a>
                                             </div>
                                         </li>
                                         <li class="nav-item dropdown">

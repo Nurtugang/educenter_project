@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/fractions_game/style.css' %}">
+{% endblock head %}
+
+{% block content %}
+<section class="pt-30 pb-120 gray-bg">
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="trainer-container">
+                    <h2>Тренажер сложных дробей</h2>
+
+                    <form id="fractions-form">
+                        {% csrf_token %}
+                        <table class="trainer-table">
+                            <tbody id="tasks-table"></tbody>
+                        </table>
+
+                        <div class="control-buttons">
+                            <button id="check-btn" type="button" class="btn-check-answer">Проверить ответы</button>
+                            <button id="next-btn" type="button" class="btn-next-task">Новые задания</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock content %}
+
+{% block last %}
+<script>
+let currentTasksData = [];
+
+$(document).ready(function() {
+    loadNewTasks();
+    $('#check-btn').on('click', checkAnswers);
+    $('#next-btn').on('click', loadNewTasks);
+});
+
+function loadNewTasks() {
+    $.ajax({
+        url: "{% url 'complexfractions_generator' %}",
+        method: 'GET',
+        success: function(data) {
+            if (data.success) {
+                currentTasksData = data.tasks_data;
+                displayTasks(data.formatted_tasks);
+                clearResults();
+            }
+        },
+        error: function() {
+            alert('Ошибка при загрузке заданий');
+        }
+    });
+}
+
+function displayTasks(tasks) {
+    $('#tasks-table').empty();
+    tasks.forEach(function(task, index) {
+        $('#tasks-table').append(
+            '<tr>' +
+                '<td class="task-cell">' +
+                    '<span class="task-number">' + (index + 1) + '</span>' +
+                    '<span class="task-content">' + task + ' = ?</span>' +
+                '</td>' +
+                '<td class="answer-cell">' +
+                    '<div class="answer-input-wrapper">' +
+                        '<input type="text" name="answer_' + index + '" required autocomplete="off" placeholder="a/b или число">' +
+                        '<span class="feedback-icon"></span>' +
+                    '</div>' +
+                '</td>' +
+            '</tr>'
+        );
+    });
+}
+
+function checkAnswers() {
+    const answers = [];
+    $('#tasks-table input').each(function(_, el) {
+        answers.push($(el).val().trim());
+    });
+    const requestData = { tasks_data: currentTasksData, answers: answers };
+    
+    $.ajax({
+        url: "{% url 'complexfractions_checker' %}",
+        method: 'POST',
+        data: JSON.stringify(requestData),
+        contentType: 'application/json',
+        headers: { 'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').val() },
+        success: function(result) {
+            if (result.success) displayResults(result.results);
+            else alert('Ошибка при проверке: ' + result.error);
+        },
+        error: function() {
+            alert('Ошибка при отправке данных');
+        }
+    });
+}
+
+function displayResults(results) {
+    $('#tasks-table input').each(function(index, el) {
+        const input = $(el);
+        const icon = input.siblings('.feedback-icon');
+        input.removeClass('correct-answer incorrect-answer');
+        if (results[index]) {
+            input.addClass('correct-answer');
+            icon.html('<i class="fa fa-check" style="color: limegreen;"></i>');
+        } else {
+            input.addClass('incorrect-answer');
+            icon.html('<i class="fa fa-times" style="color: red;"></i>');
+        }
+    });
+}
+
+function clearResults() {
+    $('#tasks-table input').removeClass('correct-answer incorrect-answer').val('');
+    $('#tasks-table .feedback-icon').empty();
+}
+</script>
+{% endblock last %}

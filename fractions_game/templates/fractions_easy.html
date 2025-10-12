@@ -1,176 +1,34 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/fractions_game/style.css' %}">
+{% endblock head %}
 
 {% block content %}
-<style>
-    .trainer-container {
-        background-color: white;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    
-    .task-list {
-        list-style-type: decimal;
-        padding-left: 20px;
-        font-size: 18px;
-        line-height: 2.5;
-    }
-    
-    .task-list li {
-        margin-bottom: 15px;
-        font-weight: 500;
-    }
-    
-    .answer-list {
-        list-style-type: none;
-        padding-left: 0;
-    }
-    
-    .answer-list li {
-        margin-bottom: 15px;
-        display: flex;
-        align-items: center;
-    }
-    
-    .answer-input {
-        width: 100px;
-        padding: 8px 12px;
-        border: 2px solid #ddd;
-        border-radius: 5px;
-        font-size: 16px;
-        text-align: center;
-        margin-right: 10px;
-        transition: border-color 0.3s;
-    }
-    
-    .answer-input:focus {
-        outline: none;
-        border-color: #47a5c9;
-    }
-    
-    .feedback-icon {
-        font-size: 18px;
-        min-width: 25px;
-    }
-    
-    .control-buttons {
-        margin-top: 30px;
-        text-align: center;
-    }
-    
-    .btn-trainer {
-        background: #47a5c9;
-        color: white;
-        font-size: 16px;
-        padding: 12px 25px;
-        border: none;
-        border-radius: 5px;
-        box-shadow: 0 4px #2c5aa0;
-        margin: 0 10px;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-    
-    .btn-trainer:hover {
-        background-color: #2980b9;
-        box-shadow: 0 6px #2c5aa0;
-        transform: translateY(-2px);
-    }
-    
-    .btn-check:hover {
-        background-color: #27ae60 !important;
-    }
-    
-    .correct-answer {
-        border: 2px solid #27ae60 !important;
-        background-color: #d5f4e6;
-    }
-    
-    .incorrect-answer {
-        border: 2px solid #e74c3c !important;
-        background-color: #fadbd8;
-    }
-    
-    .progress-info {
-        background: #f8f9fa;
-        padding: 15px;
-        border-radius: 5px;
-        margin-bottom: 20px;
-        text-align: center;
-        font-weight: 500;
-    }
-    
-    @media (max-width: 768px) {
-        .trainer-container {
-            padding: 20px;
-        }
-        
-        .col-md-6 {
-            margin-bottom: 20px;
-        }
-        
-        .answer-input {
-            width: 80px;
-        }
-    }
-</style>
-
 <section class="pt-30 pb-120 gray-bg">
     <div class="container mt-5">
         <div class="row">
             <div class="col-lg-12">
                 <div class="trainer-container">
-                    <h2 class="text-center mb-4">Тренажер дробей (легкий уровень)</h2>
-                    
-                    <div class="progress-info" id="progress-info" style="display: none;">
-                        Правильных ответов: <span id="correct-count">0</span> из <span id="total-count">6</span>
-                    </div>
-                    
+                    <h2>Тренажер дробей</h2>
+
                     <form id="fractions-form">
                         {% csrf_token %}
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h5>Задания:</h5>
-                                <ol id="task-list" class="task-list"></ol>
-                            </div>
-                            <div class="col-md-6">
-                                <h5>Ваши ответы:</h5>
-                                <ul id="answer-list" class="answer-list"></ul>
-                            </div>
-                        </div>
-                        
+                        <table class="trainer-table">
+                            <tbody id="tasks-table"></tbody>
+                        </table>
+
                         <div class="control-buttons">
-                            <button id="check-btn" type="button" class="btn-trainer btn-check">
-                                Проверить ответы
-                            </button>
-                            <button id="next-btn" type="button" class="btn-trainer">
-                                Новые задания
-                            </button>
-                            <button id="hint-btn" type="button" class="btn-trainer" style="background: #f39c12;">
-                                Подсказка
-                            </button>
+                            <button id="check-btn" type="button" class="btn-check-answer">Проверить ответы</button>
+                            <button id="next-btn" type="button" class="btn-next-task">Новые задания</button>
                         </div>
                     </form>
-                    
-                    <!-- Модальное окно с подсказкой -->
-                    <div id="hint-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
-                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; max-width: 500px; width: 90%;">
-                            <h4>Подсказки по решению дробей:</h4>
-                            <ul>
-                                <li><strong>Сложение/вычитание:</strong> Приведите к общему знаменателю</li>
-                                <li><strong>Умножение:</strong> Умножьте числители и знаменатели</li>
-                                <li><strong>Деление:</strong> Умножьте на обратную дробь</li>
-                                <li><strong>Результат:</strong> Упростите дробь (сократите)</li>
-                            </ul>
-                            <button onclick="closeHintModal()" class="btn-trainer">Закрыть</button>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
-
 {% endblock content %}
 
 {% block last %}
@@ -179,21 +37,8 @@ let currentTasksData = [];
 
 $(document).ready(function() {
     loadNewTasks();
-    
-    // Обработчик проверки ответов
-    $('#check-btn').on('click', function() {
-        checkAnswers();
-    });
-    
-    // Обработчик новых заданий
-    $('#next-btn').on('click', function() {
-        loadNewTasks();
-    });
-    
-    // Обработчик подсказки
-    $('#hint-btn').on('click', function() {
-        showHintModal();
-    });
+    $('#check-btn').on('click', checkAnswers);
+    $('#next-btn').on('click', loadNewTasks);
 });
 
 function loadNewTasks() {
@@ -205,107 +50,75 @@ function loadNewTasks() {
                 currentTasksData = data.tasks_data;
                 displayTasks(data.formatted_tasks);
                 clearResults();
-            } else {
-                console.error('Ошибка при загрузке заданий:', data.error);
             }
         },
         error: function() {
-            console.error('Ошибка при загрузке заданий');
+            alert('Ошибка при загрузке заданий');
         }
     });
 }
 
 function displayTasks(tasks) {
-    $('#task-list').empty();
-    $('#answer-list').empty();
-    
+    $('#tasks-table').empty();
     tasks.forEach(function(task, index) {
-        $('#task-list').append(`<li>${task} = ?</li>`);
-        $('#answer-list').append(`
-            <li>
-                <input type="text" class="answer-input" name="answer_${index}" 
-                       placeholder="Ответ" autocomplete="off">
-                <span class="feedback-icon"></span>
-            </li>
-        `);
+        $('#tasks-table').append(
+            '<tr>' +
+                '<td class="task-cell">' +
+                    '<span class="task-number">' + (index + 1) + '</span>' +
+                    '<span class="task-content">' + task + ' = ?</span>' +
+                '</td>' +
+                '<td class="answer-cell">' +
+                    '<div class="answer-input-wrapper">' +
+                        '<input type="text" name="answer_' + index + '" required autocomplete="off" placeholder="a/b или число">' +
+                        '<span class="feedback-icon"></span>' +
+                    '</div>' +
+                '</td>' +
+            '</tr>'
+        );
     });
 }
 
 function checkAnswers() {
     const answers = [];
-    $('.answer-input').each(function(index, element) {
-        answers.push($(element).val().trim());
+    $('#tasks-table input').each(function(_, el) {
+        answers.push($(el).val().trim());
     });
-    
-    const requestData = {
-        tasks_data: currentTasksData,
-        answers: answers
-    };
+    const requestData = { tasks_data: currentTasksData, answers: answers };
     
     $.ajax({
         url: "{% url 'fractions_checker' %}",
         method: 'POST',
-        contentType: 'application/json',
         data: JSON.stringify(requestData),
+        contentType: 'application/json',
+        headers: { 'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').val() },
         success: function(result) {
-            if (result.success) {
-                displayResults(result.results);
-                updateProgress(result.correct_count, result.total_count);
-            } else {
-                console.error('Ошибка при проверке ответов:', result.error);
-            }
+            if (result.success) displayResults(result.results);
+            else alert('Ошибка при проверке: ' + result.error);
         },
         error: function() {
-            console.error('Ошибка при проверке ответов');
+            alert('Ошибка при отправке данных');
         }
     });
 }
 
 function displayResults(results) {
-    const answerInputs = $('.answer-input');
-    const feedbackIcons = $('.feedback-icon');
-    
-    results.forEach(function(isCorrect, index) {
-        const input = answerInputs.eq(index);
-        const icon = feedbackIcons.eq(index);
-        
+    $('#tasks-table input').each(function(index, el) {
+        const input = $(el);
+        const icon = input.siblings('.feedback-icon');
         input.removeClass('correct-answer incorrect-answer');
-        
-        if (isCorrect) {
+        if (results[index]) {
             input.addClass('correct-answer');
-            icon.html('<i class="fa fa-check" style="color: #27ae60;"></i>');
+            icon.html('<i class="fa fa-check" style="color: limegreen;"></i>');
         } else {
             input.addClass('incorrect-answer');
-            icon.html('<i class="fa fa-times" style="color: #e74c3c;"></i>');
+            icon.html('<i class="fa fa-times" style="color: red;"></i>');
         }
     });
 }
 
-function updateProgress(correct, total) {
-    $('#correct-count').text(correct);
-    $('#total-count').text(total);
-    $('#progress-info').show();
-}
-
 function clearResults() {
-    $('.answer-input').removeClass('correct-answer incorrect-answer').val('');
-    $('.feedback-icon').empty();
-    $('#progress-info').hide();
+    $('#tasks-table input').removeClass('correct-answer incorrect-answer').val('');
+    $('#tasks-table .feedback-icon').empty();
 }
-
-function showHintModal() {
-    $('#hint-modal').show();
-}
-
-function closeHintModal() {
-    $('#hint-modal').hide();
-}
-
-// Закрытие модального окна по клику вне его
-$(document).on('click', '#hint-modal', function(e) {
-    if (e.target === this) {
-        closeHintModal();
-    }
-});
 </script>
 {% endblock last %}

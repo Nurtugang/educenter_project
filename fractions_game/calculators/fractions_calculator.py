@@ -105,7 +105,8 @@ def generate_easy_fractions():
             answer_num, answer_den = calculate_fraction_operation(num1, den1, num2, den2, operation)
             
             # Формируем задание
-            task_text = f"{num1}/{den1} {operation} {num2}/{den2}"
+            display_operation = '÷' if operation == '/' else operation
+            task_text = f"{num1}/{den1} {display_operation} {num2}/{den2}"
             
             # Ответ в виде дроби (если знаменатель = 1, то целое число)
             if answer_den == 1:

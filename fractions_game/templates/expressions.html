@@ -1,127 +1,30 @@
 {% extends "base.html" %}
 {% load static %}
+
+{% block head %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/fractions_game/style.css' %}">
+{% endblock head %}
+
 {% block content %}
-
-<style>
-
-    .expression-list {
-        counter-reset: expression-counter;
-    }
-    .expression-list, .answers-list {
-        list-style-type: none;
-        padding: 0;
-        font-family: 'Patrick Hand', cursive;
-    }
-    .expression-list li, .answers-list li {
-        background: white;
-        padding: 10px;
-        border-radius: 5px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        box-sizing: border-box;
-        position: relative;
-    }
-    .expression-list li {
-        counter-increment: expression-counter;
-        margin-bottom: 17.2333px;
-    }
-    .expression-list li::before {
-        content: counter(expression-counter);
-        position: absolute;
-        left: -25px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: #47a5c9;
-        color: white;
-        border-radius: 50%;
-        width: 25px;
-        height: 25px;
-        text-align: center;
-        font-size: 16px;
-        font-weight: bold;
-    }
-    .answers-list li {
-        padding: 0;
-        margin-bottom: 15px;
-        display: flex; /* Use flexbox to place input and span on the same line */
-    align-items: center;
-    }
-    .answers-list .feedback-icon {
-    margin-left: 10px; /* Add spacing between input and icon */
-}
-    .answers-list li input {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        box-sizing: border-box;
-        font-weight: 600;
-    }
-    .btn {
-        cursor: pointer;
-        font-family: 'Patrick Hand', cursive;
-        font-size: 18px;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        box-shadow: 0 4px #222;
-        margin-right: 10px;
-    }
-    .btn-check-answer {
-        background: #47a5c9;
-    }
-    .btn-next-task {
-        background: #47a5c9;
-    }
-    .btn-next-task:hover {
-        background-color: #f2a07a;
-        box-shadow: 0 6px #222;
-        position: relative;
-        top: -2px;
-    }
-    .btn-check-answer:hover {
-        background-color: limegreen;
-        box-shadow: 0 6px #222;
-        position: relative;
-        top: -2px;
-    }
-    .correct-answer {
-        border: 2px solid limegreen;
-    }
-    .incorrect-answer {
-        border: 2px solid red;
-    }
-    @media (max-width: 768px) {
-        .col-md-6, .col-md-12 {
-            flex: 0 0 100%;
-            max-width: 100%;
-        }
-    }
-</style>
-
 <section class="pt-30 pb-120 gray-bg">
     <div class="container mt-5">
         <div class="row">
-            <div class="col-lg-12 mb-3" style="background-color: white; padding: 30px; padding-left: 6  0px; padding-right:60px">
-                <h2 class="text-center mb-4">Тренажер математических выражений</h2>
-                <form id="answers-form">
-                    {% csrf_token %}
-                    <div class="row">
-                        <div class="col-md-6">
-                            <ol id="expression-list" class="expression-list mb-4">
-                            </ol>
+            <div class="col-lg-12">
+                <div class="trainer-container">
+                    <h2>Тренажер математических выражений</h2>
+
+                    <form id="expressions-form">
+                        {% csrf_token %}
+                        <table class="trainer-table">
+                            <tbody id="tasks-table"></tbody>
+                        </table>
+
+                        <div class="control-buttons">
+                            <button id="check-btn" type="button" class="btn-check-answer">Проверить ответы</button>
+                            <button id="next-btn" type="button" class="btn-next-task">Следующие задачи</button>
                         </div>
-                        <div class="col-md-6">
-                            <ul id="answers-list" class="answers-list">
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12 text-center">
-                            <button id="check-btn" type="button" class="btn btn-primary mr-2 btn-check-answer">Проверить ответ</button>
-                            <button id="next-btn" type="button" class="btn btn-primary btn-next-task">Следующие задачи</button>
-                        </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -130,101 +33,89 @@
 
 {% block last %}
 <script>
-    var initial_expressions = []
-    $(document).ready(function () {
-        // Функция для загрузки новых задач
-        function loadNewExpressions() {
-            $.ajax({
-                url: "{% url 'expressions_generator' %}",  // Замените на свой URL для генерации выражений в Django
-                method: 'GET',
-                success: function (data) {
-                    
-                    initial_expressions = data.expressions
+var initial_expressions = [];
 
-                    $('#expression-list').empty();
-                    $('#answers-list').empty();
+$(document).ready(function () {
+    loadNewExpressions();
+    $('#check-btn').on('click', checkAnswers);
+    $('#next-btn').on('click', loadNewExpressions);
+});
 
-                    // Добавляем новые выражения и поля ввода в нумерованный список
-                    $.each(data.cleaned_expressions, function(index, expression) {
-                        $('#expression-list').append('<li>' + expression + '</li>');
-                        $('#answers-list').append('<li><input type="text" autofocus name="answer_' + index + '" required title=""><span class="feedback-icon"></span></li>');
-
-
-                    });
-                },
-                error: function () {
-                    console.error('Ошибка при загрузке задач');
-                }
-            });
+function loadNewExpressions() {
+    $.ajax({
+        url: "{% url 'expressions_generator' %}",
+        method: 'GET',
+        success: function (data) {
+            initial_expressions = data.expressions;
+            displayTasks(data.cleaned_expressions);
+            clearResults();
+        },
+        error: function () {
+            console.error('Ошибка при загрузке выражений');
         }
-
-        // Инициализация при загрузке страницы
-        loadNewExpressions();
-
-        // Обработчик кнопки "Проверить ответ"
-        $('#check-btn').on('click', function () {
-            // Собираем данные для отправки на сервер
-            var formData = {
-                expressions: [],
-                answers: []
-            };
-
-            // Добавляем выражения и ответы в объект
-            // $('#expression-list li').each(function(index, element) {
-            //     formData.expressions.push($(element).text().trim());
-            // });
-            formData.expressions = initial_expressions;
-            $('#answers-list input').each(function(index, element) {
-                formData.answers.push($(element).val().trim());
-            });
-            console.log(formData)
-            // Отправляем данные на сервер
-            $.ajax({
-                url: "{% url 'expressions_checker' %}",  // Замените на свой URL для проверки ответов в Django
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(formData),
-                success: function (result) {
-                    // Выводим результат в консоль
-                    results = result.results
-                    answers_list = document.querySelector("#answers-list").querySelectorAll('input'); ;//Get items
-
-                    for (i = 0; i < answers_list.length; i++) {
-                      if(results[i]){
-                        answers_list[i].style.border='solid 2px limegreen'
-                        answers_list[i].nextElementSibling.innerHTML = '<i style="color:limegreen" class="fa fa-2x fa-check-square" aria-hidden="true"></i>'
-                      }
-                      else{
-                        answers_list[i].style.border='solid 2px red'
-                        answers_list[i].nextElementSibling.innerHTML = '<i style="color:red" class="fa fa-2x fa-close" aria-hidden="true"></i>'
-                      }
-                    }
-                    
-                },
-                error: function () {
-                    console.error('Ошибка при отправке данных на сервер');
-                }
-            });
-        });
-
-        // Обработчик кнопки "Следующие задачи"
-        $('#next-btn').on('click', function () {
-            // Загрузка новых задач
-            loadNewExpressions();
-        });
     });
-</script>
+}
 
-<script>
-    {% if user.is_authenticated %}
-        {% if user.groups.all.first.name == 'Студент' %}	
-            document.querySelectorAll('#navbarSupportedContent ul li')[4].querySelector('a').classList.add('active');
-        {% else %}
-            document.querySelectorAll('#navbarSupportedContent ul li')[6].querySelector('a').classList.add('active');
-        {% endif %}
-    {% else %}
-        document.querySelectorAll('#navbarSupportedContent ul li')[3].querySelector('a').classList.add('active');
-    {% endif %}
+function displayTasks(expressions) {
+    $('#tasks-table').empty();
+    expressions.forEach(function(expression, index) {
+        $('#tasks-table').append(
+            '<tr>' +
+                '<td class="task-cell">' +
+                    '<span class="task-number">' + (index + 1) + '</span>' +
+                    '<span class="task-content">' + expression + '</span>' +
+                '</td>' +
+                '<td class="answer-cell">' +
+                    '<div class="answer-input-wrapper">' +
+                        '<input type="text" name="answer_' + index + '" required autocomplete="off" placeholder="Ответ">' +
+                        '<span class="feedback-icon"></span>' +
+                    '</div>' +
+                '</td>' +
+            '</tr>'
+        );
+    });
+}
+
+function checkAnswers() {
+    var formData = { expressions: initial_expressions, answers: [] };
+    $('#tasks-table input').each(function(_, el) {
+        formData.answers.push($(el).val().trim());
+    });
+
+    $.ajax({
+        url: "{% url 'expressions_checker' %}",
+        method: 'POST',
+        data: JSON.stringify(formData),
+        contentType: 'application/json',
+        headers: { 'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').val() },
+        success: function (data) {
+            if (data.success) displayResults(data.results);
+            else console.error('Ошибка при проверке');
+        },
+        error: function () {
+            console.error('Ошибка при отправке данных');
+        }
+    });
+}
+
+function displayResults(results) {
+    $('#tasks-table input').each(function(index, el) {
+        const input = $(el);
+        const icon = input.siblings('.feedback-icon');
+        input.removeClass('correct-answer incorrect-answer');
+        if (results[index]) {
+            input.addClass('correct-answer');
+            icon.html('<i class="fa fa-check" style="color: limegreen;"></i>');
+        } else {
+            input.addClass('incorrect-answer');
+            icon.html('<i class="fa fa-times" style="color: red;"></i>');
+        }
+    });
+}
+
+function clearResults() {
+    $('#tasks-table input').removeClass('correct-answer incorrect-answer').val('');
+    $('#tasks-table .feedback-icon').empty();
+}
 </script>
 {% endblock last %}
-

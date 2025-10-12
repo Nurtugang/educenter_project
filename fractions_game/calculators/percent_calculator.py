@@ -1,78 +1,112 @@
 import random
 
 def generate_percent_tasks():
-    """Генерирует 6 заданий с процентами"""
+    """Генерирует 9 заданий с процентами — строго по порядку"""
     tasks = []
-    task_types = ['find_percent', 'find_number', 'find_percentage', 'increase', 'decrease', 'simple_percent']
+    task_types = [
+        'find_percent', 'find_number', 'find_percentage',
+        'increase', 'decrease', 'simple_percent',
+        'complex_increase_decrease', 'book_reading', 'rectangle_area', 'cucumber_sales'
+    ]
     
-    for i in range(6):
-        task_type = random.choice(task_types)
-        
+    # Всегда проходим по всем типам по порядку
+    for task_type in task_types:
         if task_type == 'find_percent':
-            # Найти процент от числа: 25% от 80 = ?
             percent = random.choice([5, 10, 15, 20, 25, 30, 40, 50, 60, 75, 80, 90])
             number = random.randint(10, 200)
-            # Подбираем так, чтобы результат был целым
             if number % (100 / percent) != 0:
                 number = int((100 / percent)) * random.randint(1, 5)
-            
             answer = (percent * number) / 100
             task_text = f"{percent}% от {number}"
-            
+
         elif task_type == 'find_number':
-            # Найти число по проценту: 15% от числа равно 30. Найти число
             percent = random.choice([10, 15, 20, 25, 30, 40, 50])
             part = random.randint(10, 100)
             number = (part * 100) / percent
-            
-            # Проверяем, что число целое
             if number != int(number):
-                continue
-                
+                number = round(number)
             answer = int(number)
             task_text = f"{percent}% от числа равно {part}. Найти число"
-            
+
         elif task_type == 'find_percentage':
-            # Найти процентное отношение: 30 составляет сколько % от 120?
             part = random.randint(5, 50)
             whole = random.randint(part + 10, 200)
-            
-            # Подбираем так, чтобы процент был красивым
             percentage = (part * 100) / whole
-            if percentage != int(percentage):
-                # Подгоняем числа
-                percentage = random.choice([10, 15, 20, 25, 30, 40, 50, 60, 75])
-                whole = random.randint(20, 100)
-                part = int((percentage * whole) / 100)
-            
+            percentage = round(percentage, 2)
             answer = percentage
             task_text = f"{part} составляет сколько % от {whole}?"
-            
+
         elif task_type == 'increase':
-            # Увеличение на процент: 100 увеличить на 15% = ?
             number = random.randint(10, 200)
             percent = random.choice([10, 15, 20, 25, 30, 50])
             answer = number + (number * percent) / 100
             task_text = f"{number} увеличить на {percent}%"
-            
+
         elif task_type == 'decrease':
-            # Уменьшение на процент: 200 уменьшить на 25% = ?
             number = random.randint(20, 200)
             percent = random.choice([10, 15, 20, 25, 30, 40])
             answer = number - (number * percent) / 100
             task_text = f"{number} уменьшить на {percent}%"
-            
+
         elif task_type == 'simple_percent':
-            # Простое преобразование: Сколько это 0.75 в процентах?
             decimal_values = [0.1, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.75, 0.8, 0.9]
             decimal = random.choice(decimal_values)
             answer = decimal * 100
             task_text = f"Переведите в проценты: {decimal}"
-        
-        # Проверяем, что ответ разумный
+
+        elif task_type == 'complex_increase_decrease':
+            number = random.randint(500, 1500)
+            first_percent = 20
+            second_percent = 40
+            after_increase = number * (1 + first_percent / 100)
+            answer = after_increase * (1 - second_percent / 100)
+            task_text = (
+                f"Число {number} увеличили на {first_percent}%, "
+                f"результат уменьшили на {second_percent}%. "
+                f"Какое число получилось?"
+            )
+
+        elif task_type == 'book_reading':
+            first_percent = 60
+            second_percent = 60
+            read_first = first_percent / 100
+            remaining_after_first = 1 - read_first
+            read_second = remaining_after_first * (second_percent / 100)
+            remaining = 1 - (read_first + read_second)
+            answer = round(remaining * 100, 2)
+            task_text = (
+                f"Арайлым прочитала {first_percent}% книги, потом ещё {second_percent}% остатка. "
+                f"Сколько процентов книги осталось прочитать Арайлым?"
+            )
+
+        elif task_type == 'rectangle_area':
+            length_percent = 20
+            width_percent = 60
+            answer = 100 - ((1 - length_percent / 100) * (1 - width_percent / 100) * 100)
+            answer = round(answer, 2)
+            task_text = (
+                f"На сколько процентов уменьшится площадь прямоугольника, "
+                f"если его длину уменьшить на {length_percent}%, а ширину — на {width_percent}%?"
+            )
+
+        elif task_type == 'cucumber_sales':
+            total = 850
+            first_percent = 10
+            second_percent = 20
+            first_sold = total * (first_percent / 100)
+            remaining = total - first_sold
+            second_sold = remaining * (second_percent / 100)
+            answer = round(first_sold + second_sold, 2)
+            task_text = (
+                f"В палатку завезли {total} кг огурцов. "
+                f"В первой половине дня продали {first_percent}% огурцов, "
+                f"во второй — {second_percent}% от остатка. "
+                f"Сколько всего продали огурцов за день?"
+            )
+
         if isinstance(answer, float) and answer.is_integer():
             answer = int(answer)
-        
+
         tasks.append({
             'task': task_text,
             'answer': answer,
@@ -84,7 +118,7 @@ def generate_percent_tasks():
 def check_percent_answer(user_answer, correct_answer, task_type):
     """Проверяет ответ пользователя для процентов"""
     try:
-        user_answer = user_answer.strip()
+        user_answer = user_answer.strip().replace(',', '.')
         
         # Убираем знак % если он есть
         if user_answer.endswith('%'):

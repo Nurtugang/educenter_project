@@ -1,13 +1,12 @@
 __pycache__/
 *.py[cod]
 
-**/settings.py
-
 **/migrations/__pycache__/
 
 static/*
 !static/.gitkeep
 media/
+staticfiles/
 
 *.sqlite3
 db.sqlite3
@@ -25,3 +24,7 @@ Thumbs.db
 *.pot
 
 venv/
+
+*.mo
+
+.env

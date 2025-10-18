@@ -1,18 +1,18 @@
 {% extends 'base.html' %}
+{% load i18n %}
 {% load static %}
 {% block content %}
 <!--====== SLIDER PART START ======-->
-    <!-- <h1 class="test">test</h1> -->
     <section id="slider-part" class="slider-active">
         <div class="single-slider bg_cover pt-150" data-overlay="4">
             <div class="container">
                 <div class="row">
                     <div class="col-xl-7 col-lg-9">
                         <div class="slider-cont">
-                            <h1 data-animation="bounceInLeft" data-delay="1s">Платформа для онлайн-видеокурсов</h1>
-                            <p data-animation="fadeInUp" data-delay="1.3s">Добро пожаловать на нашу онлайн платформу, где открывается мир знаний через видеокурсы!</p>
+                            <h1 data-animation="bounceInLeft" data-delay="1s">{% trans "Платформа для онлайн-видеокурсов" %}</h1>
+                            <p data-animation="fadeInUp" data-delay="1.3s">{% trans "Добро пожаловать на нашу онлайн платформу, где открывается мир знаний через видеокурсы!" %}</p>
                             <ul>
-                                <li><a data-animation="fadeInUp" data-delay="1.6s" class="main-btn" href="{% url 'elessons' %}">Перейти к видеокурсам</a></li>
+                                <li><a data-animation="fadeInUp" data-delay="1.6s" class="main-btn" href="{% url 'elessons' %}">{% trans "Перейти к видеокурсам" %}</a></li>
                             </ul>
                         </div>
                     </div>
@@ -25,10 +25,10 @@
                 <div class="row">
                     <div class="col-xl-7 col-lg-9">
                         <div class="slider-cont">
-                            <h1 data-animation="bounceInLeft" data-delay="1s">Система тестирования</h1>
-                            <p data-animation="fadeInUp" data-delay="1.3s">Проверьте свои знания с помощью нашей системы тестирования. Проходите тесты, закрепляйте материал и отслеживайте свой прогресс!</p>
+                            <h1 data-animation="bounceInLeft" data-delay="1s">{% trans "Система тестирования" %}</h1>
+                            <p data-animation="fadeInUp" data-delay="1.3s">{% trans "Проверьте свои знания с помощью нашей системы тестирования. Проходите тесты, закрепляйте материал и отслеживайте свой прогресс!" %}</p>
                             <ul>
-                                <li><a data-animation="fadeInUp" data-delay="1.6s" class="main-btn" href="{% url 'quizer_choose' %}">Перейти к тестированию</a></li>
+                                <li><a data-animation="fadeInUp" data-delay="1.6s" class="main-btn" href="{% url 'quizer_choose' %}">{% trans "Перейти к тестированию" %}</a></li>
                             </ul>
                         </div>
                     </div>
@@ -42,10 +42,10 @@
                 <div class="row">
                     <div class="col-xl-7 col-lg-9">
                         <div class="slider-cont">
-                            <h1 data-animation="bounceInLeft" data-delay="1s">Онлайн-тренажеры</h1>
-                            <p data-animation="fadeInUp" data-delay="1.3s">Используйте нашу систему тренажеров для практики работы с дробями и выражениями. Совершенствуйте свои навыки через интерактивные задания!</p>
+                            <h1 data-animation="bounceInLeft" data-delay="1s">{% trans "Онлайн-тренажеры" %}</h1>
+                            <p data-animation="fadeInUp" data-delay="1.3s">{% trans "Используйте нашу систему тренажеров для практики работы с дробями и выражениями. Совершенствуйте свои навыки через интерактивные задания!" %}</p>
                             <ul>
-                                <li><a data-animation="fadeInUp" data-delay="1.6s" class="main-btn" href="{% url 'expressions' %}">Перейти к тренажеру</a></li>
+                                <li><a data-animation="fadeInUp" data-delay="1.6s" class="main-btn" href="{% url 'expressions' %}">{% trans "Перейти к тренажеру" %}</a></li>
                             </ul>
                         </div>
                     </div>
@@ -65,7 +65,7 @@
                 <div class="row">
                     <div class="col-lg-4">
                         <div class="category-text pt-40">
-                            <h2>Предметы для изучения</h2>
+                            <h2>{% trans "Предметы для изучения" %}</h2>
                         </div>
                     </div>
                     <div class="col-lg-6 offset-lg-1 col-md-8 offset-md-2 col-sm-8 offset-sm-2 col-8 offset-2">
@@ -73,50 +73,50 @@
                             <div class="col-lg-4">
                                     <span class="singel-category text-center color-1">
                                         <span class="icon">
-                                            <img src="{% static 'images/all-icon/ctg-1.webp' %}" alt="Физика">
+                                            <img src="{% static 'images/all-icon/ctg-1.webp' %}" alt="{% trans "Физика" %}">
                                         </span>
                                         <span class="cont">
-                                            <span>Физика</span>
+                                            <span>{% trans "Физика" %}</span>
                                         </span>
                                     </span> <!-- singel category -->
                             </div>
                             <div class="col-lg-4">
                                     <span class="singel-category text-center color-2">
                                         <span class="icon">
-                                            <img src="{% static 'images/all-icon/ctg-2.webp' %}" alt="Математика">
+                                            <img src="{% static 'images/all-icon/ctg-2.webp' %}" alt="{% trans "Математика" %}">
                                         </span>
                                         <span class="cont">
-                                            <span>Математика</span>
+                                            <span>{% trans "Математика" %}</span>
                                         </span>
                                     </span> <!-- singel category -->
                             </div>
                             <div class="col-lg-4">
                                     <span class="singel-category text-center color-3">
                                         <span class="icon">
-                                            <img src="{% static 'images/all-icon/ctg-3.webp' %}" alt="Казахский язык">
+                                            <img src="{% static 'images/all-icon/ctg-3.webp' %}" alt="{% trans "Казахский язык" %}">
                                         </span>
                                         <span class="cont">
-                                            <span>Казахский язык</span>
+                                            <span>{% trans "Казахский язык" %}</span>
                                         </span>
                                     </span> <!-- singel category -->
                             </div>
                             <div class="col-lg-4">
                                     <span class="singel-category text-center color-1">
                                         <span class="icon">
-                                            <img src="{% static 'images/all-icon/ctg-1.webp' %}" alt="Английский язык">
+                                            <img src="{% static 'images/all-icon/ctg-1.webp' %}" alt="{% trans "Английский язык" %}">
                                         </span>
                                         <span class="cont">
-                                            <span>Английский язык</span>
+                                            <span>{% trans "Английский язык" %}</span>
                                         </span>
                                     </span> <!-- singel category -->
                             </div>
                             <div class="col-lg-4">
                                     <span class="singel-category text-center color-2">
                                         <span class="icon">
-                                            <img src="{% static 'images/all-icon/ctg-3.webp' %}" alt="Естествознание">
+                                            <img src="{% static 'images/all-icon/ctg-3.webp' %}" alt="{% trans "Естествознание" %}">
                                         </span>
                                         <span class="cont">
-                                            <span>Естествознание</span>
+                                            <span>{% trans "Естествознание" %}</span>
                                         </span>
                                     </span> <!-- singel category -->
                             </div>
@@ -135,8 +135,8 @@
             <div class="row">
                 <div class="col-lg-6">
                     <div class="section-title pb-45">
-                        <h5>Наши видеокурсы</h5>
-                        <h2>Видеокурсы</h2>
+                        <h5>{% trans "Наши видеокурсы" %}</h5>
+                        <h2>{% trans "Видеокурсы" %}</h2>
                     </div> <!-- section title -->
                 </div>
             </div> <!-- row -->
@@ -150,7 +150,7 @@
                         <div class="thum">
                             <div class="image">
                             <a href="{% url 'videolessons' c.id %}">
-                                <img src="{{ c.image.url }}" alt="Видеокурс {{ c.name }}">
+                                <img src="{{ c.image.url }}" alt="{% trans "Видеокурс" %} {{ c.name }}">
                             </a>
                             </div>
                         </div>
@@ -158,7 +158,7 @@
                             <a href="{% url 'videolessons' c.id %}"><h4>{{c.name}}</h4></a>
                             <div class="course-teacher">
                                 <div class="thum">
-                                    <img src="{{c.teacher.image.url}}" alt="Преподаватель {{ c.teacher.first_name }} {{ c.teacher.last_name }}">
+                                    <img src="{{c.teacher.image.url}}" alt="{% trans "Преподаватель" %} {{ c.teacher.first_name }} {{ c.teacher.last_name }}">
                                 </div>
                                 <div class="name very_special_in_index">
                                     <h6>{{c.teacher.first_name}} {{c.teacher.last_name}}</h6>
@@ -175,8 +175,8 @@
             <div class="row mt-30">
                 <div class="col-lg-12 text-center">
                     <div class="alert alert-warning" role="alert">
-                        <h4 class="alert-heading">Курсы временно недоступны или у вас нет доступа к ним</h4>
-                        <p>К сожалению, на данный момент видеокурсы отсутствуют. Пожалуйста, зайдите позже или свяжитесь <a href="contact">с нами</a> для получения дополнительной информации.</p>
+                        <h4 class="alert-heading">{% trans "Курсы временно недоступны или у вас нет доступа к ним" %}</h4>
+                        <p>{% trans "К сожалению, на данный момент видеокурсы отсутствуют. Пожалуйста, зайдите позже или свяжитесь" %} <a href="contact">{% trans "с нами" %}</a> {% trans "для получения дополнительной информации." %}</p>
                     </div>
                 </div>
             </div> <!-- row -->

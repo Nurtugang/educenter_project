@@ -1,0 +1,349 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-19 01:38+0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: kk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: .\eduapp\templates\base.html:117
+msgid "Наши адреса"
+msgstr "Біздің адреслер"
+
+#: .\eduapp\templates\base.html:153
+msgid "Обратная связь"
+msgstr "Кері байланыс"
+
+#: .\eduapp\templates\base.html:156
+msgid "Админ-панель"
+msgstr "Админ-панель"
+
+#: .\eduapp\templates\base.html:158
+msgid "Профиль"
+msgstr "Профиль"
+
+#: .\eduapp\templates\base.html:159
+msgid "Выйти"
+msgstr "Шығу"
+
+#: .\eduapp\templates\base.html:161
+msgid "Войти в свой аккаунт"
+msgstr "Өз аккаунтыңызға кіріңіз"
+
+#: .\eduapp\templates\base.html:176 .\eduapp\templates\base.html:308
+msgid "Логотип школы Senim"
+msgstr "Senim мектебінің логотипі"
+
+#: .\eduapp\templates\base.html:189
+msgid "Toggle navigation"
+msgstr "Навигацияны ауыстыру"
+
+#: .\eduapp\templates\base.html:198 .\eduapp\templates\base.html:321
+msgid "Главная"
+msgstr "Басты бет"
+
+#: .\eduapp\templates\base.html:202 .\eduapp\templates\base.html:322
+#: .\eduapp\templates\index.html:138
+msgid "Видеокурсы"
+msgstr "Бейнелік курстар"
+
+#: .\eduapp\templates\base.html:205 .\eduapp\templates\base.html:323
+msgid "Контакты"
+msgstr "Контактылар"
+
+#: .\eduapp\templates\base.html:211 .\eduapp\templates\base.html:337
+msgid "Журнал"
+msgstr "Журнал"
+
+#: .\eduapp\templates\base.html:214 .\eduapp\templates\base.html:221
+#: .\eduapp\templates\base.html:338 .\eduapp\templates\base.html:350
+msgid "Табель"
+msgstr "Табель"
+
+#: .\eduapp\templates\base.html:217 .\eduapp\templates\base.html:227
+#: .\eduapp\templates\base.html:339 .\eduapp\templates\base.html:351
+msgid "Посещаемость"
+msgstr "Қатысу"
+
+#: .\eduapp\templates\base.html:224
+msgid "Ученики"
+msgstr "Оқушылар"
+
+#: .\eduapp\templates\base.html:226
+msgid "Досье учеников"
+msgstr "Оқушылардың досьесі"
+
+#: .\eduapp\templates\base.html:231 .\eduapp\templates\base.html:352
+msgid "Проверка журнала"
+msgstr "Журналды тексеру"
+
+#: .\eduapp\templates\base.html:235 .\eduapp\templates\base.html:325
+msgid "Дневник"
+msgstr "Күнделік"
+
+#: .\eduapp\templates\base.html:238
+msgid "Досье"
+msgstr "Досье"
+
+#: .\eduapp\templates\base.html:242
+#, fuzzy
+#| msgid "Тренажер дробей"
+msgid "Тренажеры"
+msgstr "Тренажерлер"
+
+#: .\eduapp\templates\base.html:245
+msgid "Дроби (легкие)"
+msgstr "Бөлшектер (оңай)"
+
+#: .\eduapp\templates\base.html:248
+#, fuzzy
+#| msgid "Тренажер десятичных дробей"
+msgid "Дроби (десятичные)"
+msgstr "Бөлшектер (ондық)"
+
+#: .\eduapp\templates\base.html:251
+msgid "Дроби (сложные)"
+msgstr "Бөлшектер (күрделі)"
+
+#: .\eduapp\templates\base.html:254
+msgid "Проценты"
+msgstr "Пайыздар"
+
+#: .\eduapp\templates\base.html:257
+#, fuzzy
+#| msgid "Тренажер пропорций"
+msgid "Пропорции"
+msgstr "Пропорциялар"
+
+#: .\eduapp\templates\base.html:260
+msgid "Выражения"
+msgstr "Өрнектер"
+
+#: .\eduapp\templates\base.html:263
+msgid "Уравнения"
+msgstr "Теңдеулер"
+
+#: .\eduapp\templates\base.html:266
+msgid "Интерактивный тренажёр дробей (Godot)"
+msgstr "Интерактивті бөлшектер тренажері (Godot)"
+
+#: .\eduapp\templates\base.html:271 .\eduapp\templates\base.html:273
+msgid "Тестирование"
+msgstr "Тестілеу"
+
+#: .\eduapp\templates\base.html:274
+msgid "Свободное тестирование"
+msgstr "Ашық тестілеу"
+
+#: .\eduapp\templates\base.html:275
+msgid "Еженедельное тестирование"
+msgstr "Аптасына бір рет тестілеу"
+
+#: .\eduapp\templates\base.html:279
+msgid "Senim Store"
+msgstr "Senim Store"
+
+#: .\eduapp\templates\base.html:310
+msgid "Подготовка в НИШ, РФМШ, БИЛ"
+msgstr "НИШ, РФМШ, БІЛ-ге дайындық"
+
+#: .\eduapp\templates\base.html:310
+msgid "Подготовка к Олимпиадам по математике"
+msgstr "Математика олимпиадасына дайындық"
+
+#: .\eduapp\templates\base.html:310
+msgid "Подготовка по школьной программе"
+msgstr "Мектептің бағдарламасы бойынша дайындық"
+
+#: .\eduapp\templates\base.html:318
+msgid "Карта сайта"
+msgstr "Сайт картасы"
+
+#: .\eduapp\templates\base.html:334 .\eduapp\templates\base.html:347
+msgid "Для персонала"
+msgstr "Персоналға арналған"
+
+#: .\eduapp\templates\base.html:362
+msgid "Наши контакты"
+msgstr "Біздің контактылар"
+
+#: .\eduapp\templates\base.html:409
+msgid "Все права защищены."
+msgstr "Барлық құқықтар сақталған."
+
+#: .\eduapp\templates\index.html:11
+msgid "Платформа для онлайн-видеокурсов"
+msgstr "Онлайн бейнелік курстар платформасы"
+
+#: .\eduapp\templates\index.html:12
+msgid ""
+"Добро пожаловать на нашу онлайн платформу, где открывается мир знаний через "
+"видеокурсы!"
+msgstr ""
+"Біздің онлайн платформасына қош келдіңіз, мұндағы бейнелік курстар "
+"арқылы білім ғаламы ашылады!"
+
+#: .\eduapp\templates\index.html:14
+msgid "Перейти к видеокурсам"
+msgstr "Бейнелік курстарға өту"
+
+#: .\eduapp\templates\index.html:27
+msgid "Система тестирования"
+msgstr "Тестілеу жүйесі"
+
+#: .\eduapp\templates\index.html:28
+msgid ""
+"Проверьте свои знания с помощью нашей системы тестирования. Проходите тесты, "
+"закрепляйте материал и отслеживайте свой прогресс!"
+msgstr ""
+"Біздің тестілеу жүйесінің көмегімен өзіңіздің білімді тексеріңіз. Тестерді "
+"өтіңіз, материалды бекітіңіз және өздеріңіздің прогресін бақылаңыз!"
+
+#: .\eduapp\templates\index.html:30
+msgid "Перейти к тестированию"
+msgstr "Тестілеуге өту"
+
+#: .\eduapp\templates\index.html:44
+msgid "Онлайн-тренажеры"
+msgstr "Онлайн-тренажерлер"
+
+#: .\eduapp\templates\index.html:45
+msgid ""
+"Используйте нашу систему тренажеров для практики работы с дробями и "
+"выражениями. Совершенствуйте свои навыки через интерактивные задания!"
+msgstr ""
+"Бөлшектер мен өрнектерді жұмысы бойынша өнеге үшін біздің тренажерлер "
+"жүйесін пайдаланыңыз. Интерактивті тапсырмалар арқылы өндіріңіз ынамдарыңызды!"
+
+#: .\eduapp\templates\index.html:47
+msgid "Перейти к тренажеру"
+msgstr "Тренажерге өту"
+
+#: .\eduapp\templates\index.html:67
+msgid "Предметы для изучения"
+msgstr "Оқыту үшін пәндер"
+
+#: .\eduapp\templates\index.html:75 .\eduapp\templates\index.html:78
+msgid "Физика"
+msgstr "Физика"
+
+#: .\eduapp\templates\index.html:85 .\eduapp\templates\index.html:88
+msgid "Математика"
+msgstr "Математика"
+
+#: .\eduapp\templates\index.html:95 .\eduapp\templates\index.html:98
+msgid "Казахский язык"
+msgstr "Қазақ тілі"
+
+#: .\eduapp\templates\index.html:105 .\eduapp\templates\index.html:108
+msgid "Английский язык"
+msgstr "Ағылшын тілі"
+
+#: .\eduapp\templates\index.html:115 .\eduapp\templates\index.html:118
+msgid "Естествознание"
+msgstr "Табиғаттану"
+
+#: .\eduapp\templates\index.html:137
+msgid "Наши видеокурсы"
+msgstr "Біздің бейнелік курстар"
+
+#: .\eduapp\templates\index.html:152
+msgid "Видеокурс"
+msgstr "Бейнелік курс"
+
+#: .\eduapp\templates\index.html:160
+msgid "Преподаватель"
+msgstr "Ұстаз"
+
+#: .\eduapp\templates\index.html:177
+msgid "Курсы временно недоступны или у вас нет доступа к ним"
+msgstr "Курстар уақытша қол жетімсіз немесе олармен қол жеткіңіз жоқ"
+
+#: .\eduapp\templates\index.html:178
+msgid ""
+"К сожалению, на данный момент видеокурсы отсутствуют. Пожалуйста, зайдите "
+"позже или свяжитесь"
+msgstr ""
+"Өкінішке орай, бұл ретте бейнелік курстар болмайды. Өтінемін, кейін келіңіз "
+"немесе байланыс құрыңыз"
+
+#: .\eduapp\templates\index.html:178
+msgid "с нами"
+msgstr "бізбен"
+
+#: .\eduapp\templates\index.html:178
+msgid "для получения дополнительной информации."
+msgstr "қосымша ақпарат алу үшін."
+
+#: .\fractions_game\templates\equations.html:16
+msgid "Тренажер уравнений"
+msgstr "Теңдеулер тренажері"
+
+#: .\fractions_game\templates\equations.html:25
+#: .\fractions_game\templates\expressions.html:25
+#: .\fractions_game\templates\fractions_complex.html:25
+#: .\fractions_game\templates\fractions_decimal.html:25
+#: .\fractions_game\templates\fractions_easy.html:25
+#: .\fractions_game\templates\percentages.html:26
+#: .\fractions_game\templates\proportions.html:26
+msgid "Проверить ответы"
+msgstr "Жауаптарды тексеру"
+
+#: .\fractions_game\templates\equations.html:26
+#: .\fractions_game\templates\expressions.html:26
+msgid "Следующие задачи"
+msgstr "Келесі тапсырмалар"
+
+#: .\fractions_game\templates\equations.html:104
+#: .\fractions_game\templates\expressions.html:73
+msgid "Ответ"
+msgstr "Жауап"
+
+#: .\fractions_game\templates\expressions.html:16
+msgid "Тренажер математических выражений"
+msgstr "Математикалық өрнектер тренажері"
+
+#: .\fractions_game\templates\fractions_complex.html:16
+msgid "Тренажер сложных дробей"
+msgstr "Күрделі бөлшектер тренажері"
+
+#: .\fractions_game\templates\fractions_complex.html:26
+#: .\fractions_game\templates\fractions_decimal.html:26
+#: .\fractions_game\templates\fractions_easy.html:26
+#: .\fractions_game\templates\percentages.html:29
+#: .\fractions_game\templates\proportions.html:29
+msgid "Новые задания"
+msgstr "Жаңа тапсырмалар"
+
+#: .\fractions_game\templates\fractions_complex.html:75
+#: .\fractions_game\templates\fractions_decimal.html:75
+#: .\fractions_game\templates\fractions_easy.html:75
+msgid "a/b или число"
+msgstr "a/b немесе сан"
+
+#: .\fractions_game\templates\fractions_decimal.html:16
+msgid "Тренажер десятичных дробей"
+msgstr "Ондық бөлшектер тренажері"
+
+#: .\fractions_game\templates\fractions_easy.html:16
+msgid "Тренажер дробей"
+msgstr "Бөлшектер тренажері"
+
+#: .\fractions_game\templates\percentages.html:16
+msgid "Тренажер процентов"
+msgstr "Пайыздар тренажері"
+
+#: .\fractions_game\templates\proportions.html:16
+msgid "Тренажер пропорций"
+msgstr "Пропорциялар тренажері"

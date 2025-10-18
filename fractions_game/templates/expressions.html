@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% load static %}
 
 {% block head %}
@@ -6,12 +7,13 @@
 {% endblock head %}
 
 {% block content %}
+
 <section class="pt-30 pb-120 gray-bg">
     <div class="container mt-5">
         <div class="row">
             <div class="col-lg-12">
                 <div class="trainer-container">
-                    <h2>Тренажер математических выражений</h2>
+                    <h2>{% trans "Тренажер математических выражений" %}</h2>
 
                     <form id="expressions-form">
                         {% csrf_token %}
@@ -20,8 +22,8 @@
                         </table>
 
                         <div class="control-buttons">
-                            <button id="check-btn" type="button" class="btn-check-answer">Проверить ответы</button>
-                            <button id="next-btn" type="button" class="btn-next-task">Следующие задачи</button>
+                            <button id="check-btn" type="button" class="btn-check-answer">{% trans "Проверить ответы" %}</button>
+                            <button id="next-btn" type="button" class="btn-next-task">{% trans "Следующие задачи" %}</button>
                         </div>
                     </form>
                 </div>
@@ -29,6 +31,7 @@
         </div>
     </div>
 </section>
+
 {% endblock content %}
 
 {% block last %}
@@ -67,7 +70,7 @@ function displayTasks(expressions) {
                 '</td>' +
                 '<td class="answer-cell">' +
                     '<div class="answer-input-wrapper">' +
-                        '<input type="text" name="answer_' + index + '" required autocomplete="off" placeholder="Ответ">' +
+                        '<input type="text" name="answer_' + index + '" required autocomplete="off" placeholder="{% trans "Ответ" %}">' +
                         '<span class="feedback-icon"></span>' +
                     '</div>' +
                 '</td>' +

@@ -1,4 +1,5 @@
 {% load my_filters %}
+{% load i18n %}
 {% load static %}
 <!doctype html>
 <html lang="ru">
@@ -113,7 +114,7 @@
                                     <div class="dropdown">
                                         <a class="btn btn-default dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                             <i class="fa fa-map-marker"></i>   
-                                            <span>Наши адреса</span>
+                                            <span>{% trans "Наши адреса" %}</span>
                                             <span class="caret"></span>
                                         </a>
                                         <ul class="dropdown-menu">
@@ -140,8 +141,60 @@
                                         <i class="fa fa-instagram"></i><span> school_senim</span>
                                     </a>
                                 </li>
+                                <li style="color: #ed7e4a;">
+                                    <div class="dropdown">
+                                        <a class="btn btn-default dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <i class="fa fa-globe"></i>   
+                                            <span>Язык</span>
+                                            <span class="caret"></span>
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-right language-dropdown" style="min-width: 150px; padding: 5px 0;">
+                                            <li style="padding: 0;">
+                                                <form action="{% url 'set_language' %}" method="post" style="margin: 0;">
+                                                    {% csrf_token %}
+                                                    <input name="next" type="hidden" value="{{ request.path }}">
+                                                    <input name="language" type="hidden" value="ru">
+                                                    <button type="submit" style="background: none; border: none; padding: 8px 15px; cursor: pointer; display: flex; align-items: center; gap: 10px; color: #333; font-size: 14px; width: 100%; text-align: left; transition: background 0.2s;" 
+                                                            onmouseover="this.style.background='#f5f5f5'" 
+                                                            onmouseout="this.style.background='none'" 
+                                                            title="Русский">
+                                                        <img src="{% static 'icons/ru.svg' %}" alt="RU" style="width: 20px; height: 15px; object-fit: cover;">
+                                                        <span>Русский</span>
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            <li style="padding: 0;">
+                                                <form action="{% url 'set_language' %}" method="post" style="margin: 0;">
+                                                    {% csrf_token %}
+                                                    <input name="next" type="hidden" value="{{ request.path }}">
+                                                    <input name="language" type="hidden" value="kk">
+                                                    <button type="submit" style="background: none; border: none; padding: 8px 15px; cursor: pointer; display: flex; align-items: center; gap: 10px; color: #333; font-size: 14px; width: 100%; text-align: left; transition: background 0.2s;" 
+                                                            onmouseover="this.style.background='#f5f5f5'" 
+                                                            onmouseout="this.style.background='none'" 
+                                                            title="Қазақша">
+                                                        <img src="{% static 'icons/kz.svg' %}" alt="KZ" style="width: 20px; height: 15px; object-fit: cover;">
+                                                        <span>Қазақша</span>
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            <li style="padding: 0;">
+                                                <form action="{% url 'set_language' %}" method="post" style="margin: 0;">
+                                                    {% csrf_token %}
+                                                    <input name="next" type="hidden" value="{{ request.path }}">
+                                                    <input name="language" type="hidden" value="en">
+                                                    <button type="submit" style="background: none; border: none; padding: 8px 15px; cursor: pointer; display: flex; align-items: center; gap: 10px; color: #333; font-size: 14px; width: 100%; text-align: left; transition: background 0.2s;" 
+                                                            onmouseover="this.style.background='#f5f5f5'" 
+                                                            onmouseout="this.style.background='none'" 
+                                                            title="English">
+                                                        <img src="{% static 'icons/gb.svg' %}" alt="EN" style="width: 20px; height: 15px; object-fit: cover;">
+                                                        <span>English</span>
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </li>
                             </ul>
-                            
                             
                         </div>
                     </div>
@@ -149,16 +202,13 @@
                         <div class="header-contact  text-lg-right text-center"> 
                             <ul>
                                 {% if user.is_authenticated %}
-                                    <!-- {% if user.groups.all.first.name == 'Преподаватель' %}	
-                                        <li><a href="#" data-toggle="modal" data-target="#feedbackModal"><span>Обратная связь</span></a></li>
-                                    {% endif %} -->
                                     {% if user.is_staff %}
-                                        <li><a href="{% url 'admin:index' %}" target="_blank"><span>Админ-панель</span></a></li>
+                                        <li><a href="{% url 'admin:index' %}" target="_blank"><span>{% trans "Админ-панель" %}</span></a></li>
                                     {% endif %}
-                                    <li><a href="{% url 'profile' %}"><span>Профиль</span></a></li>
-                                    <li><a href="{% url 'logout' %}"><span>Выйти</span></a></li>
+                                    <li><a href="{% url 'profile' %}"><span>{% trans "Профиль" %}</span></a></li>
+                                    <li><a href="{% url 'logout' %}"><span>{% trans "Выйти" %}</span></a></li>
                                 {% else %}
-                                    <li><a href="{% url 'login' %}"><span>Войти в свой аккаунт</span></a></li>
+                                    <li><a href="{% url 'login' %}"><span>{% trans "Войти в свой аккаунт" %}</span></a></li>
                                 {% endif %}
                             </ul>
                         </div>
@@ -173,7 +223,7 @@
                     <div class="col-lg-4 col-md-4">
                         <div class="logo">
                             <a href="{% url 'index' %}">
-                                <img style="height: 100px" src="{% static 'senim/logo_senim.webp' %}" alt="Логотип школы Senim">
+                                <img style="height: 100px" src="{% static 'senim/logo_senim.webp' %}" alt="{% trans "Логотип школы Senim" %}">
                             </a>
                         </div>
                     </div>
@@ -186,7 +236,7 @@
                 <div class="row">
                     <div class="col-lg-10 col-md-10 col-sm-9 col-8">
                         <nav class="navbar navbar-expand-lg">
-                            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{% trans "Toggle navigation" %}">
                                 <span class="icon-bar"></span>
                                 <span class="icon-bar"></span>
                                 <span class="icon-bar"></span>
@@ -195,88 +245,88 @@
                             <div class="collapse navbar-collapse sub-menu-bar" id="navbarSupportedContent">
                                 <ul class="navbar-nav mr-auto" style="display:-webkit-inline-box;">
                                     <li class="nav-item">
-                                        <a href="{% url 'index' %}">Главная</a>
+                                        <a href="{% url 'index' %}">{% trans "Главная" %}</a>
                                     </li>
 
                                     <li class="nav-item">
-                                        <a href="{% url 'elessons' %}">Видеокурсы</a>
+                                        <a href="{% url 'elessons' %}">{% trans "Видеокурсы" %}</a>
                                     </li>
                                     <li class="nav-item">
-                                        <a href="{% url 'contact' %}">Контакты</a>
+                                        <a href="{% url 'contact' %}">{% trans "Контакты" %}</a>
                                     </li>
                                     
 
                                     {% if user|is_teacher %}
                                         <li>
-                                            <a href="{% url 'journal' %}"><span>Журнал</span></a>
+                                            <a href="{% url 'journal' %}"><span>{% trans "Журнал" %}</span></a>
                                         </li>
                                         <li>
-                                            <a href="{% url 'tabel' %}"><span>Табель</span></a>
+                                            <a href="{% url 'tabel' %}"><span>{% trans "Табель" %}</span></a>
                                         </li>
                                         <li>
-                                            <a href="{% url 'attendancy' %}"><span>Посещаемость</span></a>
+                                            <a href="{% url 'attendancy' %}"><span>{% trans "Посещаемость" %}</span></a>
                                         </li>
                                     {% elif user|is_admin %}
                                        <li>
-                                            <a href="{% url 'tabel' %}"><span>Табель</span></a>
+                                            <a href="{% url 'tabel' %}"><span>{% trans "Табель" %}</span></a>
                                         </li>
                                         <li class="nav-item dropdown">
-                                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown"  data-toggle="dropdown">Ученики</a>
+                                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown"  data-toggle="dropdown">{% trans "Ученики" %}</a>
                                             <div class="dropdown-menu">
-                                              <a class="dropdown-item p-2" href="{% url 'students_management' %}"><span>Досье учеников</span></a>
-                                              <a class="dropdown-item p-2" href="{% url 'attendancy' %}"><span>Посещаемость</span></a>
+                                              <a class="dropdown-item p-2" href="{% url 'students_management' %}"><span>{% trans "Досье учеников" %}</span></a>
+                                              <a class="dropdown-item p-2" href="{% url 'attendancy' %}"><span>{% trans "Посещаемость" %}</span></a>
                                             </div>
                                         </li>
                                         <li>
-                                            <a href="{% url 'check_journal' %}"><span>Проверка журнала</span></a>
+                                            <a href="{% url 'check_journal' %}"><span>{% trans "Проверка журнала" %}</span></a>
                                         </li>
                                     {% elif user|is_student %}
                                         <li>
-                                            <a href="{% url 'journal_student' %}"><span>Дневник</span></a>
+                                            <a href="{% url 'journal_student' %}"><span>{% trans "Дневник" %}</span></a>
                                         </li>
                                         <li>
-                                            <a href="{% url 'student_profile' user.id %}"><span>Досье</span></a>
+                                            <a href="{% url 'student_profile' user.id %}"><span>{% trans "Досье" %}</span></a>
                                         </li>
                                     {% endif %}
                                         <li class="nav-item dropdown">
-                                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown"  data-toggle="dropdown">Тренажеры</a>
+                                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown"  data-toggle="dropdown">{% trans "Тренажеры" %}</a>
                                             <div class="dropdown-menu">
                                                 <a class="dropdown-item p-2" href="{% url 'fractions_easy' %}">
-                                                    <span>Дроби (легкие)</span>
+                                                    <span>{% trans "Дроби (легкие)" %}</span>
                                                 </a>
                                                 <a class="dropdown-item p-2" href="{% url 'fractions_decimal' %}">
-                                                    <span>Дроби (десятичные)</span>
+                                                    <span>{% trans "Дроби (десятичные)" %}</span>
                                                 </a>
                                                 <a class="dropdown-item p-2" href="{% url 'fractions_complex' %}">
-                                                    <span>Дроби (сложные)</span>
+                                                    <span>{% trans "Дроби (сложные)" %}</span>
                                                 </a>
                                                 <a class="dropdown-item p-2" href="{% url 'percentages' %}">
-                                                    <span>Проценты</span>
+                                                    <span>{% trans "Проценты" %}</span>
                                                 </a>
                                                 <a class="dropdown-item p-2" href="{% url 'proportions' %}">
-                                                    <span>Пропорции</span>
+                                                    <span>{% trans "Пропорции" %}</span>
                                                 </a>
                                                 <a class="dropdown-item p-2" href="{% url 'expressions' %}">
-                                                    <span>Выражения</span>
+                                                    <span>{% trans "Выражения" %}</span>
                                                 </a>
                                                 <a class="dropdown-item p-2" href="{% url 'equations' %}">
-                                                    <span>Уравнения</span>
+                                                    <span>{% trans "Уравнения" %}</span>
                                                 </a>
                                                 <a class="dropdown-item p-2" href="{% url 'godot_index' %}" target="_blank">
-                                                    <span>Интерактивный тренажёр дробей (Godot)</span>
+                                                    <span>{% trans "Интерактивный тренажёр дробей (Godot)" %}</span>
                                                 </a>
                                             </div>
                                         </li>
                                         <li class="nav-item dropdown">
-                                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownQuiz"  data-toggle="dropdown">Тестирование</a>
+                                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownQuiz"  data-toggle="dropdown">{% trans "Тестирование" %}</a>
                                             <div class="dropdown-menu">
-                                              <a class="dropdown-item p-2" href="{% url 'quizer_choose' %}"><span>Тестирование</span></a>
-                                              <a class="dropdown-item p-2" href="{% url 'open_quizer_choose' %}"><span>Свободное тестирование</span></a>
-                                              <a class="dropdown-item p-2" href="{% url 'weekly_leaderboard' %}"><span>Еженедельное тестирование</span></a>
+                                              <a class="dropdown-item p-2" href="{% url 'quizer_choose' %}"><span>{% trans "Тестирование" %}</span></a>
+                                              <a class="dropdown-item p-2" href="{% url 'open_quizer_choose' %}"><span>{% trans "Свободное тестирование" %}</span></a>
+                                              <a class="dropdown-item p-2" href="{% url 'weekly_leaderboard' %}"><span>{% trans "Еженедельное тестирование" %}</span></a>
                                             </div>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="{% url 'product_list' %}">Senim Store</a>
+                                            <a href="{% url 'product_list' %}">{% trans "Senim Store" %}</a>
                                         </li>
 
                                 </ul>
@@ -298,47 +348,6 @@
 
     <!--====== FOOTER PART START ======-->
     
-    <!--  -->
-    <!-- <div class="modal fade" id="feedbackModal" tabindex="-1" role="dialog" aria-labelledby="feedbackModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-            <form id="feedbackForm">
-                {% csrf_token %}
-                <div class="modal-header">
-                <h5 class="modal-title">Обратная связь</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Закрыть">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-                </div>
-                <div class="modal-body">
-                    <p class="text-muted">
-                        Здесь вы можете оставить обратную связь разработчику данной платформы: поделиться идеей, сообщить об ошибке в платформе или задать вопрос.
-                    </p>
-                    <div class="form-group">
-                    <label for="id_category">Тип сообщения</label>
-                    <select class="form-control" id="id_category" name="category">
-                        <option value="idea">Идея</option>
-                        <option value="bug">Ошибка</option>
-                        <option value="question">Вопрос</option>
-                        <option value="other">Другое</option>
-                    </select>
-                    </div>
-                    <div class="form-group">
-                    <label for="id_message">Сообщение</label>
-                    <textarea class="form-control" id="id_message" name="message" rows="4" required></textarea>
-                    </div>
-                    <div id="feedbackSuccess" class="alert alert-success" style="display:none;">Спасибо за ваш отклик!</div>
-                </div>
-                <div class="modal-footer">
-                <button type="submit" class="btn btn-primary">Отправить</button>
-                </div>
-            </form>
-            </div>
-        </div>
-    </div> -->
-
-    <!--  -->
-
     <footer id="footer-part">
         <div class="footer-top pt-20 pb-35">
             <div class="container">
@@ -346,9 +355,9 @@
                     <div class="col-lg-4 col-md-6">
                         <div class="mt-40">
                             <div class="logo mb-20">
-                                <a href="{% url 'index' %}"><img style="height: 100px" src="{% static 'senim/logo_senim.webp' %}" alt="Логотип школы Senim"></a>
+                                <a href="{% url 'index' %}"><img style="height: 100px" src="{% static 'senim/logo_senim.webp' %}" alt="{% trans "Логотип школы Senim" %}"></a>
                             </div>
-                            <p class="phrases">Подготовка в НИШ, РФМШ, БИЛ <br>Подготовка к Олимпиадам по математике <br>Подготовка по школьной программе</p>
+                            <p class="phrases">{% trans "Подготовка в НИШ, РФМШ, БИЛ" %}<br>{% trans "Подготовка к Олимпиадам по математике" %}<br>{% trans "Подготовка по школьной программе" %}</p>
                             <br>
                         </div> <!-- footer about -->
                     </div>
@@ -356,14 +365,14 @@
                     <div class="col-lg-2 col-md-6 col-sm-6 hide-on-mobile">
                         <div class="footer-link mt-95">
                             <div class="footer-title pb-25">
-                                <h6>Карта сайта</h6>
+                                <h6>{% trans "Карта сайта" %}</h6>
                             </div>
                             <ul>
-                                <li><a href="{% url 'index' %}"><i class="fa fa-angle-right"></i>Главная</a></li>
-                                <li><a href="{% url 'elessons' %}"><i class="fa fa-angle-right"></i>Видеокурсы</a></li>
-                                <li><a href="{% url 'contact' %}"><i class="fa fa-angle-right"></i>Контакты</a></li>
+                                <li><a href="{% url 'index' %}"><i class="fa fa-angle-right"></i>{% trans "Главная" %}</a></li>
+                                <li><a href="{% url 'elessons' %}"><i class="fa fa-angle-right"></i>{% trans "Видеокурсы" %}</a></li>
+                                <li><a href="{% url 'contact' %}"><i class="fa fa-angle-right"></i>{% trans "Контакты" %}</a></li>
                                 {% if user|is_student %}
-                                    <li><a href="{% url 'journal_student' %}"><i class="fa fa-angle-right"></i>Дневник</a></li>
+                                    <li><a href="{% url 'journal_student' %}"><i class="fa fa-angle-right"></i>{% trans "Дневник" %}</a></li>
                                 {% endif %}
                             </ul>
                         </div> <!-- footer link -->
@@ -372,12 +381,12 @@
                     <div class="col-lg-2 col-md-6 col-sm-6 hide-on-mobile">
                         <div class="footer-link support mt-95">
                             <div class="footer-title pb-25">
-                                <h6>Для персонала</h6>
+                                <h6>{% trans "Для персонала" %}</h6>
                             </div>
                             <ul>
-                                <li><a href="{% url 'journal' %}"><i class="fa fa-angle-right"></i>Журнал</a></li>
-                                <li><a href="{% url 'tabel' %}"><i class="fa fa-angle-right"></i>Табель</a></li>
-                                <li><a href="{% url 'attendancy' %}"><i class="fa fa-angle-right"></i>Посещаемость</a></li>
+                                <li><a href="{% url 'journal' %}"><i class="fa fa-angle-right"></i>{% trans "Журнал" %}</a></li>
+                                <li><a href="{% url 'tabel' %}"><i class="fa fa-angle-right"></i>{% trans "Табель" %}</a></li>
+                                <li><a href="{% url 'attendancy' %}"><i class="fa fa-angle-right"></i>{% trans "Посещаемость" %}</a></li>
                             </ul>
                         </div> 
                     </div>
@@ -385,12 +394,12 @@
                     <div class="col-lg-2 col-md-6 col-sm-6 hide-on-mobile">
                         <div class="footer-link support mt-95">
                             <div class="footer-title pb-25">
-                                <h6>Для персонала</h6>
+                                <h6>{% trans "Для персонала" %}</h6>
                             </div>
                             <ul>
-                                <li><a href="{% url 'tabel' %}"><i class="fa fa-angle-right"></i>Табель</a></li>
-                                <li><a href="{% url 'attendancy' %}"><i class="fa fa-angle-right"></i>Посещаемость</a></li>
-                                <li><a href="{% url 'check_journal' %}"><i class="fa fa-angle-right"></i>Проверка журнала</a></li>
+                                <li><a href="{% url 'tabel' %}"><i class="fa fa-angle-right"></i>{% trans "Табель" %}</a></li>
+                                <li><a href="{% url 'attendancy' %}"><i class="fa fa-angle-right"></i>{% trans "Посещаемость" %}</a></li>
+                                <li><a href="{% url 'check_journal' %}"><i class="fa fa-angle-right"></i>{% trans "Проверка журнала" %}</a></li>
 
                             </ul>
                         </div> 
@@ -400,7 +409,7 @@
                     <div class="col-lg-3 col-md-6 hide-on-mobile">
                         <div class="footer-address mt-95">
                             <div class="footer-title pb-25">
-                                <h6>Наши контакты</h6>
+                                <h6>{% trans "Наши контакты" %}</h6>
                             </div>
                             <ul>
                                 <li>
@@ -447,7 +456,7 @@
                     </div>
                 </div> <!-- row -->
                 <div class="copyright text-md-left">
-                    <p>© <span id="currentYear"></span> Все права защищены.</p>
+                    <p>© <span id="currentYear"></span> {% trans "Все права защищены." %}</p>
                 </div>
             </div> <!-- container -->
         </div> <!-- footer top -->
@@ -498,33 +507,6 @@
         document.getElementById('currentYear').textContent = new Date().getFullYear();
     </script>
 
-    <!-- <script>
-        $('#feedbackForm').on('submit', function(e) {
-            e.preventDefault();
-            $.ajax({
-            type: 'POST',
-            url: '{% url "feedback_ajax" %}',
-            data: {
-                'category': $('#id_category').val(),
-                'message': $('#id_message').val(),
-                'csrfmiddlewaretoken': '{{ csrf_token }}',
-            },
-            success: function(response) {
-                $('#feedbackSuccess').fadeIn();
-                $('#id_message').val('');
-                setTimeout(function() {
-                $('#feedbackModal').modal('hide');
-                $('#feedbackSuccess').hide();
-                }, 2000);
-            },
-            error: function(response) {
-                alert('Ошибка при отправке. Попробуйте снова.');
-            }
-        });
-    });
-    </script> -->
-
-   
     {% block last %}
 
     {% endblock last %}

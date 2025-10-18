@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% load static %}
 
 {% block head %}
@@ -6,12 +7,13 @@
 {% endblock head %}
 
 {% block content %}
+
 <section class="pt-30 pb-120 gray-bg">
     <div class="container mt-5">
         <div class="row">
             <div class="col-lg-12">
                 <div class="trainer-container">
-                    <h2>Тренажер сложных дробей</h2>
+                    <h2>{% trans "Тренажер сложных дробей" %}</h2>
 
                     <form id="fractions-form">
                         {% csrf_token %}
@@ -20,8 +22,8 @@
                         </table>
 
                         <div class="control-buttons">
-                            <button id="check-btn" type="button" class="btn-check-answer">Проверить ответы</button>
-                            <button id="next-btn" type="button" class="btn-next-task">Новые задания</button>
+                            <button id="check-btn" type="button" class="btn-check-answer">{% trans "Проверить ответы" %}</button>
+                            <button id="next-btn" type="button" class="btn-next-task">{% trans "Новые задания" %}</button>
                         </div>
                     </form>
                 </div>
@@ -29,6 +31,7 @@
         </div>
     </div>
 </section>
+
 {% endblock content %}
 
 {% block last %}
@@ -69,7 +72,7 @@ function displayTasks(tasks) {
                 '</td>' +
                 '<td class="answer-cell">' +
                     '<div class="answer-input-wrapper">' +
-                        '<input type="text" name="answer_' + index + '" required autocomplete="off" placeholder="a/b или число">' +
+                        '<input type="text" name="answer_' + index + '" required autocomplete="off" placeholder="{% trans "a/b или число" %}">' +
                         '<span class="feedback-icon"></span>' +
                     '</div>' +
                 '</td>' +
